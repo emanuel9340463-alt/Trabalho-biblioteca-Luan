@@ -9,11 +9,16 @@ if ($termo === '') {
     $sql = 'SELECT titulo, isbn, status_livro FROM livros ORDER BY titulo';
     $stmt = $conn->prepare($sql);
 } else {
-    $sql = "SELECT titulo, isbn, status_livro FROM livros WHERE titulo LIKE CONCAT('%', ?, '%') ORDER BY titulo";
+    $sql = "SELECT titulo, isbn, status_livro FROM livros
+            WHERE titulo LIKE CONCAT('%', ?, '%')
+               OR autor LIKE CONCAT('%', ?, '%')
+               OR isbn LIKE CONCAT('%', ?, '%')
+               OR codigo_bibli LIKE CONCAT('%', ?, '%')
+            ORDER BY titulo";
     $stmt = $conn->prepare($sql);
 
     if ($stmt) {
-        $stmt->bind_param('s', $termo);
+        $stmt->bind_param('ssss', $termo, $termo, $termo, $termo);
     }
 }
 
@@ -59,17 +64,17 @@ function livroDisponivel($status)
       <header class="page-header mb-4">
         <p class="eyebrow mb-2">BIBLIOTECA</p>
         <h1>Encontre seu próximo livro</h1>
-        <p class="text-secondary mb-0">Pesquise pelo título e confira a disponibilidade no catálogo.</p>
+        <p class="text-secondary mb-0">Pesquise por título, autor, ISBN ou código da biblioteca.</p>
       </header>
 
       <form class="search-form mb-5" action="pesquisa.php" method="get" role="search">
-        <label class="visually-hidden" for="termo-pesquisa">Título do livro</label>
+        <label class="visually-hidden" for="termo-pesquisa">Título, autor, ISBN ou código da biblioteca</label>
         <input
           class="form-control"
           id="termo-pesquisa"
           name="q"
           type="search"
-          placeholder="Digite o título do livro"
+          placeholder="Título, autor, ISBN ou código da biblioteca"
           value="<?= escapar($termo) ?>"
         >
         <button class="btn btn-search" type="submit">Pesquisar</button>
@@ -81,7 +86,7 @@ function livroDisponivel($status)
         <div class="empty-state" role="status">
           <h2>Nenhum livro encontrado</h2>
           <p class="mb-0">
-            <?= $termo !== '' ? 'Tente buscar por outro título.' : 'Ainda não há livros cadastrados no catálogo.' ?>
+            <?= $termo !== '' ? 'Tente buscar por outro título, autor ou código.' : 'Ainda não há livros cadastrados no catálogo.' ?>
           </p>
         </div>
       <?php else: ?>
@@ -94,6 +99,14 @@ function livroDisponivel($status)
             <?php
               $disponivel = livroDisponivel($livro['status_livro']);
               $isbn = preg_replace('/[^0-9Xx]/', '', (string) $livro['isbn']);
+              $capaLocal = null;
+              foreach (['jpg', 'png', 'webp'] as $extensaoCapa) {
+                  $caminhoCapa = __DIR__ . '/img/capas/' . $isbn . '.' . $extensaoCapa;
+                  if (is_file($caminhoCapa)) {
+                      $capaLocal = 'img/capas/' . rawurlencode($isbn) . '.' . $extensaoCapa;
+                      break;
+                  }
+              }
             ?>
             <article class="book-card">
               <div class="book-cover">
@@ -101,22 +114,30 @@ function livroDisponivel($status)
                   <span class="cover-mark">L</span>
                   <span>Capa não disponível</span>
                 </div>
-                <?php if ($isbn !== ''): ?>
+                <?php if ($capaLocal !== null): ?>
+                  <img
+                    src="<?= escapar($capaLocal) ?>"
+                    alt="Capa do livro <?= escapar($livro['titulo']) ?>"
+                    loading="lazy"
+                    decoding="async"
+                  >
+                <?php elseif ($isbn !== ''): ?>
                   <img
                     src="https://covers.openlibrary.org/b/isbn/<?= rawurlencode($isbn) ?>-M.jpg?default=false"
                     alt="Capa do livro <?= escapar($livro['titulo']) ?>"
                     loading="lazy"
+                    decoding="async"
                     onload="if (this.naturalWidth <= 1) this.hidden = true"
                     onerror="this.hidden = true"
                   >
                 <?php endif; ?>
-              </div>
-              <div class="book-info">
-                <h2 class="book-title"><?= escapar($livro['titulo']) ?></h2>
-                <span class="availability <?= $disponivel ? 'is-available' : 'is-unavailable' ?>">
-                  <span class="availability-dot" aria-hidden="true"></span>
-                  <?= $disponivel ? 'Disponível' : 'Indisponível' ?>
-                </span>
+                <div class="book-info">
+                  <h2 class="book-title"><?= escapar($livro['titulo']) ?></h2>
+                  <span class="availability <?= $disponivel ? 'is-available' : 'is-unavailable' ?>">
+                    <span class="availability-dot" aria-hidden="true"></span>
+                    <?= $disponivel ? 'Disponível' : 'Indisponível' ?>
+                  </span>
+                </div>
               </div>
             </article>
           <?php endforeach; ?>

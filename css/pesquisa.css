@@ -66,40 +66,44 @@ body {
 
 .book-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.25rem;
 }
 
 .book-card {
   overflow: hidden;
-  border: 1px solid #e6e9e3;
-  border-radius: 1rem;
-  background: #fff;
-  box-shadow: 0 5px 18px rgb(32 48 43 / 5%);
+  border: 0;
+  border-radius: 0.75rem;
+  background: #e9eee8;
+  aspect-ratio: 2 / 3;
+  box-shadow: 0 5px 18px rgb(32 48 43 / 10%);
 }
 
 .book-cover {
   position: relative;
-  display: grid;
-  min-height: 280px;
-  place-items: center;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
-  background: #e9eee8;
+  background: linear-gradient(145deg, #dce5dc, #b9c9bd);
 }
 
 .book-cover img {
   position: absolute;
   inset: 0;
+  z-index: 1;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
 }
 
 .cover-placeholder {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.6rem;
+  justify-content: center;
   color: #77827c;
   font-size: 0.85rem;
 }
@@ -117,18 +121,32 @@ body {
 }
 
 .book-info {
+  position: absolute;
+  z-index: 2;
+  right: 0;
+  bottom: 0;
+  left: 0;
   display: flex;
-  min-height: 112px;
+  min-height: 5.5rem;
   flex-direction: column;
   align-items: flex-start;
-  justify-content: space-between;
+  justify-content: center;
   gap: 0.75rem;
-  padding: 1.1rem 1.2rem;
+  padding: 0.9rem 1rem;
+  background: rgb(24 38 32 / 62%);
+  color: #fff;
+  transition: background-color 180ms ease;
+}
+
+.book-card:hover .book-info,
+.book-card:focus-within .book-info {
+  background: rgb(24 38 32 / 92%);
 }
 
 .book-title {
   margin: 0;
-  font-size: 1.1rem;
+  color: inherit;
+  font-size: 1rem;
   font-weight: 700;
   line-height: 1.35;
 }
@@ -149,11 +167,11 @@ body {
 }
 
 .is-available {
-  color: #28774b;
+  color: #a7edba;
 }
 
 .is-unavailable {
-  color: #a44e43;
+  color: #ffb7ad;
 }
 
 .empty-state {
@@ -178,10 +196,6 @@ body {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1rem;
   }
-
-  .book-cover {
-    min-height: 240px;
-  }
 }
 
 @media (max-width: 479.98px) {
@@ -200,8 +214,10 @@ body {
   .book-grid {
     grid-template-columns: 1fr;
   }
+}
 
-  .book-cover {
-    min-height: 300px;
+@media (prefers-reduced-motion: reduce) {
+  .book-info {
+    transition: none;
   }
 }
