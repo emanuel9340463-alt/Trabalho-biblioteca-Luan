@@ -51,6 +51,12 @@ CREATE TABLE IF NOT EXISTS emprestimos (
     FOREIGN KEY (livro_id) REFERENCES livros(id)
 );
 
+INSERT INTO emprestimos (aluno_id, livro_id, data_emprestimo, data_devolucao)
+VALUES(1, 5,  CURDATE(), DATE_ADD(CURDATE(), INTERVAL 7 DAY));
+
+ALTER TABLE emprestimos
+ADD COLUMN data_devolucao_real DATE NULL;
+
 SELECT * FROM livros;
 SELECT * FROM alunos;
-SELECT * FROM usuarios;
+SELECT * FROM emprestimos;
