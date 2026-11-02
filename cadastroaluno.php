@@ -4,7 +4,7 @@ require_once 'config/conexao.php';
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Captura dos dados enviados pelo formulário
     $nome            = isset($_POST['nome']) ? trim($_POST['nome']) : '';
-    $data_nascimento = isset($_POST['data_nascimento']) ? trim($_POST['data_nascimento']) : '';
+    $data_nascimento = isset($_POST['data_nascimento']) ? trim($_POST['data_nascimento']) : (isset($_POST['nascimento']) ? trim($_POST['nascimento']) : '');
     $turma           = isset($_POST['turma']) ? trim($_POST['turma']) : '';
 
     // Validação dos campos obrigatórios
@@ -88,8 +88,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     </div>
 
                                     <div class="mb-3">
-                                        <label for="nascimento" class="form-label">Data de Nascimento</label>
-                                        <input type="date" class="form-control" id="nascimento" name="nascimento" required>
+                                        <label for="data_nascimento" class="form-label">Data de Nascimento</label>
+                                        <input type="date" class="form-control" id="data_nascimento" name="data_nascimento" required>
                                     </div>
 
                                     <div class="mb-3">

@@ -3,27 +3,26 @@ require_once 'config/conexao.php';
 
 $mensagem = '';
 $erro = '';
-$capaEncontrada = false;
+$fonteCapa = false;
 $titulo = '';
 $autor = '';
 $categoria = '';
 $isbn = '';
 $codigo_bibli = '';
+$quantidade = '1';
 
 function escapar($valor)
 {
     return htmlspecialchars((string) $valor, ENT_QUOTES, 'UTF-8');
 }
 
-function salvarCapaPorIsbn($isbn)
+function baixarImagem($url, $limiteBytes = 5 * 1024 * 1024)
 {
     if (!function_exists('curl_init')) {
-        return false;
+        return null;
     }
 
-    $url = 'https://covers.openlibrary.org/b/isbn/' . rawurlencode($isbn) . '-M.jpg?default=false';
     $imagem = '';
-    $limiteBytes = 5 * 1024 * 1024;
     $curl = curl_init($url);
     curl_setopt_array($curl, [
         CURLOPT_FOLLOWLOCATION => true,
@@ -48,9 +47,14 @@ function salvarCapaPorIsbn($isbn)
     curl_close($curl);
 
     if ($executado === false || $status !== 200 || $imagem === '') {
-        return false;
+        return null;
     }
 
+    return $imagem;
+}
+
+function extensaoImagemValida($imagem)
+{
     $tipo = (new finfo(FILEINFO_MIME_TYPE))->buffer($imagem);
     $extensoesPermitidas = [
         'image/jpeg' => 'jpg',
@@ -65,6 +69,16 @@ function salvarCapaPorIsbn($isbn)
         $dimensoes[0] < 20 ||
         $dimensoes[1] < 20
     ) {
+        return null;
+    }
+
+    return $extensoesPermitidas[$tipo];
+}
+
+function salvarImagemCapa($isbn, $imagem)
+{
+    $extensao = extensaoImagemValida($imagem);
+    if ($extensao === null) {
         return false;
     }
 
@@ -73,8 +87,74 @@ function salvarCapaPorIsbn($isbn)
         return false;
     }
 
-    $caminho = $diretorioCapas . DIRECTORY_SEPARATOR . $isbn . '.' . $extensoesPermitidas[$tipo];
+    foreach (['jpg', 'png', 'webp'] as $extensaoAnterior) {
+        $caminhoAnterior = $diretorioCapas . DIRECTORY_SEPARATOR . $isbn . '.' . $extensaoAnterior;
+        if ($extensaoAnterior !== $extensao && is_file($caminhoAnterior) && !unlink($caminhoAnterior)) {
+            return false;
+        }
+    }
+
+    $caminho = $diretorioCapas . DIRECTORY_SEPARATOR . $isbn . '.' . $extensao;
     return file_put_contents($caminho, $imagem, LOCK_EX) !== false;
+}
+
+function salvarCapaPorIsbn($isbn, $arquivoEnviado)
+{
+    if ($arquivoEnviado !== null) {
+        $imagemEnviada = file_get_contents($arquivoEnviado['tmp_name']);
+        return $imagemEnviada !== false && salvarImagemCapa($isbn, $imagemEnviada)
+            ? 'upload'
+            : false;
+    }
+
+    $imagemOpenLibrary = baixarImagem(
+        'https://covers.openlibrary.org/b/isbn/' . rawurlencode($isbn) . '-M.jpg?default=false'
+    );
+    if ($imagemOpenLibrary !== null && salvarImagemCapa($isbn, $imagemOpenLibrary)) {
+        return 'openlibrary';
+    }
+
+    $respostaGoogle = baixarImagem(
+        'https://www.googleapis.com/books/v1/volumes?q=isbn:' . rawurlencode($isbn) . '&maxResults=5',
+        1024 * 1024
+    );
+    $dadosGoogle = $respostaGoogle === null ? null : json_decode($respostaGoogle, true);
+
+    foreach (($dadosGoogle['items'] ?? []) as $item) {
+        $linksCapa = $item['volumeInfo']['imageLinks'] ?? [];
+        foreach (['thumbnail', 'smallThumbnail'] as $tipoCapa) {
+            $urlCapa = $linksCapa[$tipoCapa] ?? '';
+            $hostCapa = is_string($urlCapa) ? parse_url($urlCapa, PHP_URL_HOST) : null;
+            if (!in_array($hostCapa, ['books.google.com', 'books.googleusercontent.com'], true)) {
+                continue;
+            }
+
+            $urlCapa = preg_replace('/^http:/i', 'https:', $urlCapa);
+            $imagemGoogle = baixarImagem($urlCapa);
+            if ($imagemGoogle !== null && salvarImagemCapa($isbn, $imagemGoogle)) {
+                return 'google-books';
+            }
+        }
+    }
+
+    return false;
+}
+
+function validarCapaEnviada($arquivo)
+{
+    if (!is_array($arquivo) || !isset($arquivo['error']) || $arquivo['error'] === UPLOAD_ERR_NO_FILE) {
+        return null;
+    }
+
+    if ($arquivo['error'] !== UPLOAD_ERR_OK || !isset($arquivo['tmp_name'], $arquivo['size'])
+        || $arquivo['size'] > 5 * 1024 * 1024 || !is_uploaded_file($arquivo['tmp_name'])) {
+        return false;
+    }
+
+    $imagem = file_get_contents($arquivo['tmp_name']);
+    return $imagem !== false && extensaoImagemValida($imagem) !== null
+        ? $arquivo
+        : false;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -84,9 +164,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $isbnInformado = isset($_POST['isbn']) && is_string($_POST['isbn']) ? trim($_POST['isbn']) : '';
     $isbn = preg_replace('/[^0-9Xx]/', '', $isbnInformado);
     $codigo_bibli = isset($_POST['codigo_bibli']) && is_string($_POST['codigo_bibli']) ? trim($_POST['codigo_bibli']) : '';
+    $quantidadeInformada = isset($_POST['quantidade']) && is_string($_POST['quantidade'])
+        ? trim($_POST['quantidade'])
+        : '';
+    $quantidadeValidada = filter_var($quantidadeInformada, FILTER_VALIDATE_INT, [
+        'options' => ['min_range' => 1],
+    ]);
+    $quantidade = $quantidadeInformada;
+    $capaEnviada = validarCapaEnviada($_FILES['capa'] ?? null);
 
-    if ($titulo === '' || $isbn === '' || $codigo_bibli === '') {
-        $erro = 'Preencha os campos obrigatórios: título, ISBN e código da biblioteca.';
+    if ($capaEnviada === false) {
+        $erro = 'A capa deve ser uma imagem JPG, PNG ou WEBP válida, com até 5 MB.';
+    } elseif ($titulo === '' || $isbn === '' || $codigo_bibli === '' || $quantidadeValidada === false) {
+        $erro = 'Preencha os campos obrigatórios e informe uma quantidade inteira maior que zero.';
     } else {
         $stmtVerifica = $conn->prepare('SELECT id FROM livros WHERE titulo = ? LIMIT 1');
 
@@ -103,23 +193,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($resultado->num_rows > 0) {
                     $erro = 'Este livro já está cadastrado.';
                 } else {
-                    $stmt = $conn->prepare('INSERT INTO livros (titulo, autor, genero, isbn, codigo_bibli) VALUES (?, ?, ?, ?, ?)');
+                    $stmt = $conn->prepare('INSERT INTO livros (titulo, autor, genero, isbn, codigo_bibli, quantidade) VALUES (?, ?, ?, ?, ?, ?)');
 
                     if (!$stmt) {
                         $erro = 'Não foi possível preparar o cadastro do livro.';
                     } else {
-                        $stmt->bind_param('sssss', $titulo, $autor, $categoria, $isbn, $codigo_bibli);
+                        $stmt->bind_param('sssssi', $titulo, $autor, $categoria, $isbn, $codigo_bibli, $quantidadeValidada);
 
                         if ($stmt->execute()) {
-                            $capaEncontrada = salvarCapaPorIsbn($isbn);
-                            $mensagem = $capaEncontrada
-                                ? 'Livro cadastrado e capa salva com sucesso.'
-                                : 'Livro cadastrado, mas não foi possível encontrar ou salvar a capa para este ISBN.';
+                            $fonteCapa = salvarCapaPorIsbn($isbn, $capaEnviada);
+                            $mensagem = $fonteCapa === 'upload'
+                                ? 'Livro cadastrado e capa enviada salva com sucesso.'
+                                : ($fonteCapa === 'google-books'
+                                    ? 'Livro cadastrado e capa encontrada na Google Books.'
+                                    : ($fonteCapa === 'openlibrary'
+                                        ? 'Livro cadastrado e capa encontrada na Open Library.'
+                                        : 'Livro cadastrado, mas não foi possível encontrar ou salvar a capa. Você pode tentar enviar uma imagem manualmente.'));
                             $titulo = '';
                             $autor = '';
                             $categoria = '';
                             $isbn = '';
                             $codigo_bibli = '';
+                            $quantidade = '1';
                         } elseif ($stmt->errno === 1062) {
                             $erro = 'Já existe um livro cadastrado com este ISBN ou código da biblioteca.';
                         } else {
@@ -164,7 +259,7 @@ $conn->close();
                                 <h2 class="text-center mb-4">Cadastrar Livros</h2>
                                 
                                 <!-- FORMULÁRIO CORRIGIDO COM action E method -->
-                                <form id="livroForm" action="cadastrolivro.php" method="POST">
+                                <form id="livroForm" action="cadastrolivro.php" method="POST" enctype="multipart/form-data">
                                     <div class="mb-3">
                                         <label class="form-label">Título do Livro</label>
                                         <input type="text" name="titulo" class="form-control" id="livro" placeholder="Digite o título do livro" value="<?= escapar($titulo) ?>" required>
@@ -190,8 +285,19 @@ $conn->close();
                                     </div>
 
                                     <div class="mb-3">
+                                        <label class="form-label" for="capa">Enviar capa manualmente (opcional)</label>
+                                        <input type="file" name="capa" class="form-control" id="capa" accept="image/jpeg,image/png,image/webp">
+                                        <div class="form-text">JPG, PNG ou WEBP, até 5 MB. A imagem enviada terá prioridade sobre as capas encontradas pelo ISBN.</div>
+                                    </div>
+
+                                    <div class="mb-3">
                                         <label class="form-label">Código da Biblioteca</label>
                                         <input type="text" name="codigo_bibli" class="form-control" id="codigo_bibli" placeholder="Digite o código da biblioteca" value="<?= escapar($codigo_bibli) ?>" required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label" for="quantidade">Quantidade de exemplares</label>
+                                        <input type="number" name="quantidade" class="form-control" id="quantidade" min="1" step="1" value="<?= escapar($quantidade) ?>" required>
                                     </div>
 
                                     <div class="d-grid">
@@ -201,7 +307,7 @@ $conn->close();
                                     <!-- EXIBIÇÃO DAS MENSAGENS DE SUCESSO OU ERRO -->
                                     <div id="mensagem" class="mt-3 text-center">
                                         <?php if (!empty($mensagem)): ?>
-                                            <div class="alert <?= $capaEncontrada ? 'alert-success' : 'alert-warning' ?>" role="alert">
+                                            <div class="alert <?= $fonteCapa ? 'alert-success' : 'alert-warning' ?>" role="alert">
                                                 <?= escapar($mensagem) ?>
                                             </div>
                                         <?php endif; ?>

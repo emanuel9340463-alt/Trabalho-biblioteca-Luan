@@ -2,7 +2,8 @@ document.getElementById("alunoForm").addEventListener("submit", function (e) {
     e.preventDefault(); // Impede o recarregamento da página
 
     let nome = document.getElementById("nome").value;
-    let nascimento = document.getElementById("nascimento").value;
+    let nascimentoInput = document.getElementById("data_nascimento") || document.getElementById("nascimento");
+    let nascimento = nascimentoInput ? nascimentoInput.value : "";
     let turma = document.getElementById("turma").value;
     let mensagemDiv = document.getElementById("mensagem");
 

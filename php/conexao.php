@@ -3,7 +3,7 @@
 $host = "localhost";
 $usuario = "root";
 $senha = "";
-$banco = "sistema_login";
+$banco = "biblioteca_luan";
 
 $conn = new mysqli($host, $usuario, $senha, $banco);
 

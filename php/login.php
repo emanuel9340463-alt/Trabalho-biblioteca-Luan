@@ -1,31 +1,34 @@
 <?php
 
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db   = "sistema_login";
+require_once __DIR__ . '/../config/conexao.php';
 
-$conexao = mysqli_connect($host, $user, $pass, $db);
-
-if(!$conexao){
-    die("Erro de conexão");
-}
-
-$email = $_POST['email'];
-$senha = $_POST['senha'];
-
-$sql = "SELECT * FROM usuarios 
-        WHERE email='$email' 
-        AND senha='$senha'";
-
-$resultado = mysqli_query($conexao, $sql);
-
-if(mysqli_num_rows($resultado) > 0){
-
-    echo "sucesso";
-
-}else{
-
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
     echo "erro";
+    exit;
 }
+
+$email = isset($_POST['email']) ? trim((string) $_POST['email']) : '';
+$senha = isset($_POST['senha']) ? (string) $_POST['senha'] : '';
+
+if ($email === '' || $senha === '') {
+    echo "erro";
+    exit;
+}
+
+$stmt = $conn->prepare('SELECT id FROM usuarios WHERE email = ? AND senha = ?');
+
+if (!$stmt) {
+    echo "erro";
+    exit;
+}
+
+$stmt->bind_param('ss', $email, $senha);
+$stmt->execute();
+$resultado = $stmt->get_result();
+
+echo $resultado->num_rows > 0 ? "sucesso" : "erro";
+
+$stmt->close();
+$conn->close();
 ?>

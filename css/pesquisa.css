@@ -159,6 +159,10 @@ body {
   font-weight: 600;
 }
 
+.book-quantity {
+  font-size: 0.85rem;
+}
+
 .availability-dot {
   width: 0.55rem;
   height: 0.55rem;

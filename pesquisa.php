@@ -6,10 +6,10 @@ $livros = [];
 $erro = '';
 
 if ($termo === '') {
-    $sql = 'SELECT titulo, isbn, status_livro FROM livros ORDER BY titulo';
+    $sql = 'SELECT titulo, isbn, status_livro, quantidade FROM livros ORDER BY titulo';
     $stmt = $conn->prepare($sql);
 } else {
-    $sql = "SELECT titulo, isbn, status_livro FROM livros
+    $sql = "SELECT titulo, isbn, status_livro, quantidade FROM livros
             WHERE titulo LIKE CONCAT('%', ?, '%')
                OR autor LIKE CONCAT('%', ?, '%')
                OR isbn LIKE CONCAT('%', ?, '%')
@@ -136,6 +136,10 @@ function livroDisponivel($status)
                   <span class="availability <?= $disponivel ? 'is-available' : 'is-unavailable' ?>">
                     <span class="availability-dot" aria-hidden="true"></span>
                     <?= $disponivel ? 'Disponível' : 'Indisponível' ?>
+                  </span>
+                  <span class="book-quantity">
+                    <?= escapar($livro['quantidade']) ?>
+                    <?= (int) $livro['quantidade'] === 1 ? 'exemplar' : 'exemplares' ?>
                   </span>
                 </div>
               </div>
