@@ -262,6 +262,6 @@ $activePage = 'emprestimos';
         <?php endif; ?>
 
     </section>
-```
+
     </div>
 <?php require 'includes/footer.php'; ?>
