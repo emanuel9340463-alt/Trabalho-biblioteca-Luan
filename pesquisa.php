@@ -119,24 +119,16 @@ function livroDisponivel($status)
     return in_array($status, ['disponivel', 'available'], true);
 }
 ?>
-<!doctype html>
-<html lang="pt-BR">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Pesquisa de livros | Biblioteca</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/pesquisa.css">
-  </head>
-  <body>
-    <main class="container py-5">
-      <header class="page-header mb-4">
-        <p class="eyebrow mb-2">BIBLIOTECA</p>
-        <h1>Encontre seu próximo livro</h1>
-        <p class="text-secondary mb-0">Pesquise por título, autor, ISBN ou código da biblioteca.</p>
-      </header>
+<?php
+$pageTitle = 'Acervo e pesquisa';
+$pageDescription = 'Pesquise por título, autor, ISBN ou código da biblioteca e confira a disponibilidade.';
+$activePage = 'pesquisa';
+$pageStyles = ['css/pesquisa.css'];
+require 'includes/header.php';
+?>
+    <div class="container-fluid p-0">
 
-      <form class="search-form mb-5" action="pesquisa.php" method="get" role="search">
+      <form class="search-form mb-4" action="pesquisa.php" method="get" role="search">
         <label class="visually-hidden" for="termo-pesquisa">Título, autor, ISBN ou código da biblioteca</label>
         <input
           class="form-control"
@@ -304,7 +296,6 @@ $disponivel = $disponiveis > 0;
 
   </div>
 </div>
-    </main>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -429,5 +420,5 @@ status.textContent = disponivel
     });
 });
 </script>
-  </body>
-</html>
+    </div>
+<?php require 'includes/footer.php'; ?>

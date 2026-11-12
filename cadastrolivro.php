@@ -6,6 +6,7 @@ require_once 'config/conexao.php';
 $mensagem = '';
 $erro = '';
 $fonteCapa = false;
+$capaAutomaticaPendente = null;
 $titulo = '';
 $autor = '';
 $categoria = '';
@@ -540,6 +541,43 @@ function validarCapaEnviada($arquivo)
             : false;
 }
 
+if (
+    isset($_GET['acao']) &&
+    is_string($_GET['acao']) &&
+    $_GET['acao'] === 'buscar-capa'
+) {
+    header('Content-Type: application/json; charset=utf-8');
+
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['erro' => 'Método não permitido.'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    $isbn = isset($_POST['isbn']) && is_string($_POST['isbn'])
+        ? normalizarIsbn($_POST['isbn']) : '';
+    $titulo = isset($_POST['titulo']) && is_string($_POST['titulo'])
+        ? trim($_POST['titulo']) : '';
+    $autor = isset($_POST['autor']) && is_string($_POST['autor'])
+        ? trim($_POST['autor']) : '';
+
+    if (!in_array(strlen($isbn), [10, 13], true) || $titulo === '') {
+        http_response_code(400);
+        echo json_encode(['erro' => 'ISBN ou título inválido.'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    $conn->close();
+    set_time_limit(90);
+
+    $fonteCapa = salvarCapaPorIsbn($isbn, null, $titulo, $autor);
+    echo json_encode([
+        'encontrada' => $fonteCapa !== false,
+        'fonte' => $fonteCapa,
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 // =====================================================
 // 12. PROCESSAMENTO DO FORMULÁRIO
 // =====================================================
@@ -632,24 +670,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         );
 
                         if ($stmt->execute()) {
-
-                            $fonteCapa = salvarCapaPorIsbn(
-                                $isbn,
-                                $capaEnviada,
-                                $titulo,
-                                $autor
-                            );
-
-                            $mensagensCapa = [
-                                'upload' => 'Livro cadastrado e capa enviada salva com sucesso.',
-                                'openlibrary' => 'Livro cadastrado e capa encontrada na Open Library pelo ISBN.',
-                                'google-books' => 'Livro cadastrado e capa encontrada no Google Books pelo ISBN.',
-                                'google-books-titulo' => 'Livro cadastrado e capa encontrada no Google Books pelo título e autor.',
-                                'openlibrary-titulo' => 'Livro cadastrado e capa encontrada na Open Library pelo título e autor.'
-                            ];
-
-                            $mensagem = $mensagensCapa[$fonteCapa] ??
-                                'Livro cadastrado, mas não foi possível encontrar uma capa. Você pode enviar uma imagem manualmente posteriormente.';
+                            if ($capaEnviada !== null) {
+                                $fonteCapa = salvarCapaPorIsbn(
+                                    $isbn,
+                                    $capaEnviada,
+                                    $titulo,
+                                    $autor
+                                );
+                                $mensagem = 'Livro cadastrado e capa enviada salva com sucesso.';
+                            } else {
+                                $capaAutomaticaPendente = [
+                                    'isbn' => $isbn,
+                                    'titulo' => $titulo,
+                                    'autor' => $autor,
+                                ];
+                                $mensagem = 'Livro cadastrado. A busca pela capa continuará em segundo plano.';
+                            }
 
                             $titulo = '';
                             $autor = '';
@@ -678,107 +714,90 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $conn->close();
 
 ?>
+<?php
+$pageTitle = 'Cadastrar livro';
+$pageDescription = 'Cadastre títulos e exemplares. Os dados bibliográficos podem ser encontrados pelo ISBN.';
+$activePage = 'livros';
+require 'includes/header.php';
+?>
+<div class="row justify-content-center">
+    <div class="col-12 col-xl-9">
+        <section class="surface-card">
+            <div class="mb-4">
+                <h2 class="surface-title">Dados do livro</h2>
+                <p class="surface-subtitle">Informe o ISBN para preencher automaticamente os dados disponíveis na web.</p>
+            </div>
 
-<!doctype html>
-<html lang="pt-br">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Cadastro de Livro</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-    <div class="container">
-        <div class="row vh-100 justify-content-center align-items-center">
-            <div class="col-lg-10">
-                <div class="card login-card shadow-lg border-0 overflow-hidden">
-                    <div class="row g-0">
-                        
-                        <div class="col-md-6 d-none d-md-block">
-                            <div class="login-image">
-                                <img src="img/cadastrolivro.jpg" width="400" alt="">
-                            </div>
+            <form
+                id="livroForm"
+                action="cadastrolivro.php"
+                method="POST"
+                enctype="multipart/form-data"
+                data-capa-pendente="<?= $capaAutomaticaPendente !== null ? 'true' : 'false' ?>"
+                data-capa-isbn="<?= escapar($capaAutomaticaPendente['isbn'] ?? '') ?>"
+                data-capa-titulo="<?= escapar($capaAutomaticaPendente['titulo'] ?? '') ?>"
+                data-capa-autor="<?= escapar($capaAutomaticaPendente['autor'] ?? '') ?>"
+            >
+                <div class="row">
+                    <div class="col-12 col-lg-7 mb-3">
+                        <label class="form-label" for="isbn">ISBN</label>
+                        <input type="text" name="isbn" class="form-control" id="isbn" placeholder="Digite ou escaneie o ISBN" value="<?= escapar($isbn) ?>" inputmode="numeric" autocomplete="off" required>
+                        <div id="isbnLookupStatus" class="isbn-lookup-status mt-2" aria-live="polite">Ao informar o ISBN, vamos procurar os dados do livro.</div>
+                        <div class="isbn-cover-preview mt-2" aria-live="polite">
+                            <img id="isbnCoverPreview" src="" alt="Prévia da capa encontrada pelo ISBN" hidden>
+                            <span id="isbnCoverMessage">A capa correspondente aparecerá aqui.</span>
                         </div>
-
-                        <div class="col-md-6">
-                            <div class="card-body p-5">
-                                <h2 class="text-center mb-4">Cadastrar Livros</h2>
-                                
-                                <!-- FORMULÁRIO CORRIGIDO COM action E method -->
-                                <form id="livroForm" action="cadastrolivro.php" method="POST" enctype="multipart/form-data">
-                                    <div class="mb-3">
-                                        <label class="form-label">Título do Livro</label>
-                                        <input type="text" name="titulo" class="form-control" id="livro" placeholder="Digite o título do livro" value="<?= escapar($titulo) ?>" required>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="form-label">Autor</label>
-                                        <input type="text" name="autor" class="form-control" id="autor" placeholder="Digite o nome do autor" value="<?= escapar($autor) ?>">
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <label class="form-label">Gênero</label>
-                                        <input type="text" name="genero" class="form-control" id="genero" placeholder="Digite o gênero do livro" value="<?= escapar($categoria) ?>">
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="form-label">Código ISBN</label>
-                                        <input type="text" name="isbn" class="form-control" id="isbn" placeholder="Digite o código ISBN" value="<?= escapar($isbn) ?>" required>
-                                        <div class="isbn-cover-preview mt-2" aria-live="polite">
-                                            <img id="isbnCoverPreview" src="" alt="Prévia da capa encontrada pelo ISBN" hidden>
-                                            <span id="isbnCoverMessage" class="text-secondary">A capa correspondente aparecerá aqui.</span>
-                                        </div>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="form-label" for="capa">Enviar capa manualmente (opcional)</label>
-                                        <input type="file" name="capa" class="form-control" id="capa" accept="image/jpeg,image/png,image/webp">
-                                        <div class="form-text">JPG, PNG ou WEBP, até 5 MB. A imagem enviada terá prioridade sobre as capas encontradas pelo ISBN.</div>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="form-label">Código da Biblioteca</label>
-                                        <input type="text" name="codigo_bibli" class="form-control" id="codigo_bibli" placeholder="Digite o código da biblioteca" value="<?= escapar($codigo_bibli) ?>" required>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="form-label" for="quantidade">Quantidade de exemplares</label>
-                                        <input type="number" name="quantidade" class="form-control" id="quantidade" min="1" step="1" value="<?= escapar($quantidade) ?>" required>
-                                    </div>
-
-                                    <div class="d-grid">
-                                        <button type="submit" class="btn btn-primary btn-lg">Cadastrar Livro</button>
-                                    </div>
-
-                                    <!-- EXIBIÇÃO DAS MENSAGENS DE SUCESSO OU ERRO -->
-                                    <div id="mensagem" class="mt-3 text-center">
-                                        <?php if (!empty($mensagem)): ?>
-                                            <div class="alert <?= $fonteCapa !== false ? 'alert-success' : 'alert-warning' ?>" role="alert">
-                                                <?= escapar($mensagem) ?>
-                                            </div>
-                                        <?php endif; ?>
-
-                                        <?php if (!empty($erro)): ?>
-                                            <div class="alert alert-danger" role="alert">
-                                                <?= escapar($erro) ?>
-                                            </div>
-                                        <?php endif; ?>
-                                    </div>
-
-                                </form>
-
-                            </div>
-
-                        </div>
-
+                    </div>
+                    <div class="col-12 col-lg-5 mb-3">
+                        <label class="form-label" for="codigo_bibli">Código da biblioteca</label>
+                        <input type="text" name="codigo_bibli" class="form-control" id="codigo_bibli" placeholder="Ex.: BIB-001" value="<?= escapar($codigo_bibli) ?>" maxlength="20" required>
+                        <div class="form-text">Código interno único para localizar o exemplar.</div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
 
-    <script src="js/script.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
-</body>
-</html>
+                <div class="mb-3">
+                    <label class="form-label" for="livro">Título do livro</label>
+                    <input type="text" name="titulo" class="form-control" id="livro" placeholder="Será preenchido após a busca pelo ISBN" value="<?= escapar($titulo) ?>" maxlength="200" required>
+                </div>
+
+                <div class="row">
+                    <div class="col-12 col-md-7 mb-3">
+                        <label class="form-label" for="autor">Autor</label>
+                        <input type="text" name="autor" class="form-control" id="autor" placeholder="Nome do autor" value="<?= escapar($autor) ?>" maxlength="100">
+                    </div>
+                    <div class="col-12 col-md-5 mb-3">
+                        <label class="form-label" for="genero">Gênero</label>
+                        <input type="text" name="genero" class="form-control" id="genero" placeholder="Ex.: Ficção" value="<?= escapar($categoria) ?>" maxlength="50">
+                    </div>
+                </div>
+
+                <div class="row align-items-end">
+                    <div class="col-12 col-md-6 mb-3">
+                        <label class="form-label" for="quantidade">Quantidade de exemplares</label>
+                        <input type="number" name="quantidade" class="form-control" id="quantidade" min="1" step="1" value="<?= escapar($quantidade) ?>" required>
+                    </div>
+                    <div class="col-12 col-md-6 mb-3">
+                        <label class="form-label" for="capa">Capa manual (opcional)</label>
+                        <input type="file" name="capa" class="form-control" id="capa" accept="image/jpeg,image/png,image/webp">
+                    </div>
+                </div>
+                <p class="form-text mb-4">JPG, PNG ou WEBP, até 5 MB. A capa enviada manualmente tem prioridade.</p>
+
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <button type="submit" class="btn btn-primary px-4">Cadastrar livro</button>
+                    <a href="pesquisa.php" class="btn btn-outline-primary">Consultar acervo</a>
+                </div>
+                <div id="mensagem" class="mt-3" aria-live="polite">
+                    <?php if ($mensagem !== ''): ?>
+                        <div class="alert <?= $capaAutomaticaPendente !== null ? 'alert-info' : ($fonteCapa !== false ? 'alert-success' : 'alert-warning') ?>" role="status"><?= escapar($mensagem) ?></div>
+                    <?php endif; ?>
+                    <?php if ($erro !== ''): ?>
+                        <div class="alert alert-danger" role="alert"><?= escapar($erro) ?></div>
+                    <?php endif; ?>
+                </div>
+            </form>
+        </section>
+    </div>
+</div>
+<script src="js/script.js?v=3"></script>
+<?php require 'includes/footer.php'; ?>

@@ -48,37 +48,46 @@ $sqlLivros = "SELECT
 
 
 $resultadoLivros = $conn->query($sqlLivros);
+$cadastrosCompletos = $resultadoAlunos->num_rows > 0 && $resultadoLivros->num_rows > 0;
+$pageTitle = 'Empréstimos';
+$pageDescription = 'Registre novas retiradas e acompanhe devoluções previstas e atrasos.';
+$activePage = 'emprestimos';
 ?>
+<?php require 'includes/header.php'; ?>
+<div class="container-fluid p-0">
+    <?php
+    $mensagensResultado = [
+        'sucesso' => ['success', 'Empréstimo registrado com sucesso.'],
+        'devolucao_sucesso' => ['success', 'Devolução registrada com sucesso.'],
+        'dados_invalidos' => ['danger', 'Os dados enviados são inválidos. Confira e tente novamente.'],
+        'datas_invalidas' => ['danger', 'Confira as datas informadas para o empréstimo.'],
+        'erro' => ['danger', 'Não foi possível concluir a operação. Verifique os dados e tente novamente.'],
+    ];
+    $resultadoAcao = isset($_GET['resultado']) && is_string($_GET['resultado'])
+        ? $_GET['resultado'] : '';
+    if (isset($mensagensResultado[$resultadoAcao])):
+    ?>
+        <div class="alert alert-<?= $mensagensResultado[$resultadoAcao][0] ?>" role="status">
+            <?= htmlspecialchars($mensagensResultado[$resultadoAcao][1], ENT_QUOTES, 'UTF-8') ?>
+        </div>
+    <?php endif; ?>
 
-<!doctype html>
-<html lang="pt-br">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <title>Empréstimos | Biblioteca</title>
-
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-    >
-</head>
-
-<body>
-
-<main class="container py-5">
-
-    <header class="mb-4">
-        <p class="text-secondary mb-1">BIBLIOTECA • ADMINISTRAÇÃO</p>
-        <h1>Gerenciamento de empréstimos</h1>
-        <p class="text-secondary">
-            Registre e acompanhe os empréstimos da biblioteca.
-        </p>
-    </header>
-
-    <section class="card p-4 mb-4">
+    <section class="surface-card mb-4">
 
         <h2 class="h4 mb-3">Novo empréstimo</h2>
+        <p class="surface-subtitle mb-4">Selecione o aluno, o exemplar e a data prevista para devolução.</p>
+
+        <?php if ($resultadoAlunos->num_rows === 0 || $resultadoLivros->num_rows === 0): ?>
+            <div class="alert alert-warning" role="status">
+                Antes de registrar um empréstimo, cadastre ao menos um aluno e um livro disponível.
+                <?php if ($resultadoAlunos->num_rows === 0): ?>
+                    <a href="cadastroaluno.php">Cadastrar aluno</a>
+                <?php endif; ?>
+                <?php if ($resultadoLivros->num_rows === 0): ?>
+                    <a href="cadastrolivro.php">Cadastrar livro</a>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
 
         <form action="registrar_emprestimo.php" method="post">
 
@@ -136,6 +145,7 @@ $resultadoLivros = $conn->query($sqlLivros);
                         name="data_emprestimo"
                         id="data_emprestimo"
                         class="form-control"
+                        value="<?= date('Y-m-d') ?>"
                         required
                     >
                 </div>
@@ -150,13 +160,14 @@ $resultadoLivros = $conn->query($sqlLivros);
                         name="data_devolucao"
                         id="data_devolucao"
                         class="form-control"
+                        value="<?= date('Y-m-d', strtotime('+7 days')) ?>"
                         required
                     >
                 </div>
 
             </div>
 
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" class="btn btn-primary" <?= !$cadastrosCompletos ? 'disabled' : '' ?>>
                 Registrar empréstimo
             </button>
 
@@ -164,7 +175,7 @@ $resultadoLivros = $conn->query($sqlLivros);
 
     </section>
     
-    <section class="card p-4 mb-4">
+    <section class="surface-card">
 
         <h2 class="h4 mb-3">Empréstimos ativos</h2>
 
@@ -252,8 +263,5 @@ $resultadoLivros = $conn->query($sqlLivros);
 
     </section>
 ```
-</main>
-
-</body>
-</html>
-```
+    </div>
+<?php require 'includes/footer.php'; ?>

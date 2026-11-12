@@ -1,10 +1,10 @@
 :root {
   color-scheme: light;
-  --ink: #20302b;
-  --muted: #6b7772;
-  --green: #2f684f;
-  --green-dark: #24533e;
-  --paper: #f6f7f3;
+  --ink: #344054;
+  --muted: #667085;
+  --green: #173f35;
+  --green-dark: #102f28;
+  --paper: #f5f0e6;
 }
 
 body {
