@@ -20,7 +20,7 @@ $navigationItems = [
     <meta name="theme-color" content="#173F35">
     <title><?= htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8') ?> | Biblioteca</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=2">
+    <link rel="stylesheet" href="css/style.css?v=3">
     <?php foreach ($pageStyles as $pageStyle): ?>
         <link rel="stylesheet" href="<?= htmlspecialchars($pageStyle, ENT_QUOTES, 'UTF-8') ?>?v=2">
     <?php endforeach; ?>

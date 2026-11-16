@@ -1,24 +1,21 @@
 :root {
-  color-scheme: light;
-  --ink: #344054;
-  --muted: #667085;
-  --green: #173f35;
-  --green-dark: #102f28;
-  --paper: #f5f0e6;
+  --green: var(--forest);
+  --green-dark: var(--forest-deep);
 }
 
 body {
   min-height: 100vh;
-  background: var(--paper);
+  background: transparent;
   color: var(--ink);
-  font-family: Arial, Helvetica, sans-serif;
 }
 
 .page-header h1 {
   margin-bottom: 0.6rem;
+  color: var(--forest);
+  font-family: Georgia, "Times New Roman", serif;
   font-size: clamp(2rem, 5vw, 2.8rem);
-  font-weight: 700;
-  letter-spacing: -0.04em;
+  font-weight: 650;
+  letter-spacing: -0.025em;
 }
 
 .eyebrow {
@@ -30,38 +27,63 @@ body {
 
 .search-form {
   display: flex;
+  align-items: stretch;
   gap: 0.75rem;
   max-width: 720px;
 }
 
 .search-form .form-control {
-  min-height: 3.25rem;
-  border-color: #dce2dc;
-  border-radius: 0.75rem;
-  box-shadow: none;
+  min-height: 3.35rem;
+  border-color: #d8d5c9;
+  border-radius: 11px;
+  background-color: var(--paper);
+  box-shadow: 0 2px 6px rgb(52 64 84 / 4%);
 }
 
 .search-form .form-control:focus {
-  border-color: var(--green);
-  box-shadow: 0 0 0 0.2rem rgb(47 104 79 / 15%);
+  border-color: #789184;
+  box-shadow: var(--focus-ring);
 }
 
 .btn-search {
   min-width: 8rem;
-  border-radius: 0.75rem;
+  border: 1px solid var(--green);
+  border-radius: 10px;
   background: var(--green);
-  color: #fff;
-  font-weight: 600;
+  color: var(--white);
+  font-weight: 650;
+  box-shadow: 0 3px 8px rgb(23 63 53 / 14%);
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
 }
 
-.btn-search:hover,
-.btn-search:focus {
+.btn-search:hover {
+  transform: translateY(-1px);
+  border-color: var(--green-dark);
   background: var(--green-dark);
-  color: #fff;
+  color: var(--white);
+  box-shadow: 0 5px 12px rgb(23 63 53 / 18%);
+}
+
+.btn-search:focus-visible {
+  outline: 3px solid rgb(214 168 95 / 72%);
+  outline-offset: 3px;
+  box-shadow: none;
 }
 
 .results-count {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid #e6dfd2;
+  border-radius: 999px;
+  background: #fffdf8;
   color: var(--muted);
+  font-size: 0.86rem;
 }
 
 .book-grid {
@@ -72,11 +94,28 @@ body {
 
 .book-card {
   overflow: hidden;
-  border: 0;
-  border-radius: 0.75rem;
+  border: 1px solid rgb(23 63 53 / 10%);
+  border-radius: 12px;
   background: #e9eee8;
   aspect-ratio: 2 / 3;
-  box-shadow: 0 5px 18px rgb(32 48 43 / 10%);
+  box-shadow: 0 5px 18px rgb(32 48 43 / 9%);
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.book-card:hover,
+.book-card:focus-visible {
+  transform: translateY(-3px);
+  border-color: rgb(214 168 95 / 75%);
+  outline: none;
+  box-shadow: 0 12px 26px rgb(32 48 43 / 16%);
+}
+
+.book-card:focus-visible {
+  outline: 3px solid rgb(214 168 95 / 75%);
+  outline-offset: 3px;
 }
 
 .book-cover {
@@ -133,14 +172,14 @@ body {
   justify-content: center;
   gap: 0.75rem;
   padding: 0.9rem 1rem;
-  background: rgb(24 38 32 / 62%);
+  background: rgb(23 47 39 / 76%);
   color: #fff;
   transition: background-color 180ms ease;
 }
 
 .book-card:hover .book-info,
 .book-card:focus-within .book-info {
-  background: rgb(24 38 32 / 92%);
+  background: rgb(23 47 39 / 94%);
 }
 
 .book-title {
@@ -171,24 +210,27 @@ body {
 }
 
 .is-available {
-  color: #a7edba;
+  color: #bce6c6;
 }
 
 .is-unavailable {
-  color: #ffb7ad;
+  color: #f2b9ae;
 }
 
 .empty-state {
   padding: 3rem 1.5rem;
-  border: 1px dashed #cbd4cb;
-  border-radius: 1rem;
-  background: #fff;
+  border: 1px dashed #c9cdbf;
+  border-radius: 14px;
+  background: var(--paper);
+  box-shadow: 0 8px 24px rgb(52 64 84 / 5%);
   text-align: center;
 }
 
 .empty-state h2 {
+  color: var(--forest);
+  font-family: Georgia, "Times New Roman", serif;
   font-size: 1.35rem;
-  font-weight: 700;
+  font-weight: 650;
 }
 
 .empty-state p {
@@ -221,7 +263,9 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .book-info {
+  .book-info,
+  .book-card,
+  .btn-search {
     transition: none;
   }
 }
