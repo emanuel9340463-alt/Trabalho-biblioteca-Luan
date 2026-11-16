@@ -239,6 +239,6 @@ require 'includes/header.php';
                 </div>
             <?php endif; ?>
         </div>
-    </div>
+    </div> 
 </section>
 <?php require 'includes/footer.php'; ?>
