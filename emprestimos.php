@@ -1,9 +1,10 @@
 <?php
 require_once 'config/conexao.php';
 
-// Buscar alunos cadastrados
-$sqlAlunos = "SELECT id, nome, turma FROM alunos ORDER BY nome";
+// Verificar se há alunos cadastrados sem carregar toda a lista na página
+$sqlAlunos = "SELECT COUNT(*) AS total FROM alunos";
 $resultadoAlunos = $conn->query($sqlAlunos);
+$totalAlunos = (int) $resultadoAlunos->fetch_assoc()['total'];
 // Buscar empréstimos que ainda não foram devolvidos
 $sqlEmprestimos = "SELECT
                     emprestimos.id,
@@ -27,28 +28,18 @@ $sqlEmprestimos = "SELECT
 
 $resultadoEmprestimos = $conn->query($sqlEmprestimos);
 
-// Buscar livros com exemplares disponíveis
-
-$sqlLivros = "SELECT
-                livros.id,
-                livros.titulo,
-                livros.autor,
-                GREATEST(
-                    0,
-                    CAST(livros.quantidade AS SIGNED) - (
-                        SELECT COUNT(*)
-                        FROM emprestimos
-                        WHERE emprestimos.livro_id = livros.id
-                          AND emprestimos.data_devolucao_real IS NULL
-                    )
-                ) AS disponiveis
+// Verificar se há livros disponíveis sem carregar todo o catálogo na página
+$sqlLivros = "SELECT COUNT(*) AS total
               FROM livros
-              HAVING disponiveis > 0
-              ORDER BY titulo";
-
-
+              WHERE CAST(livros.quantidade AS SIGNED) > (
+                  SELECT COUNT(*)
+                  FROM emprestimos
+                  WHERE emprestimos.livro_id = livros.id
+                    AND emprestimos.data_devolucao_real IS NULL
+              )";
 $resultadoLivros = $conn->query($sqlLivros);
-$cadastrosCompletos = $resultadoAlunos->num_rows > 0 && $resultadoLivros->num_rows > 0;
+$livrosDisponiveis = (int) $resultadoLivros->fetch_assoc()['total'] > 0;
+$cadastrosCompletos = $totalAlunos > 0 && $livrosDisponiveis;
 $pageTitle = 'Empréstimos';
 $pageDescription = 'Registre novas retiradas e acompanhe devoluções previstas e atrasos.';
 $activePage = 'emprestimos';
@@ -77,13 +68,13 @@ $activePage = 'emprestimos';
         <h2 class="h4 mb-3">Novo empréstimo</h2>
         <p class="surface-subtitle mb-4">Selecione o aluno, o exemplar e a data prevista para devolução.</p>
 
-        <?php if ($resultadoAlunos->num_rows === 0 || $resultadoLivros->num_rows === 0): ?>
+        <?php if ($totalAlunos === 0 || !$livrosDisponiveis): ?>
             <div class="alert alert-warning" role="status">
                 Antes de registrar um empréstimo, cadastre ao menos um aluno e um livro disponível.
-                <?php if ($resultadoAlunos->num_rows === 0): ?>
+                <?php if ($totalAlunos === 0): ?>
                     <a href="cadastroaluno.php">Cadastrar aluno</a>
                 <?php endif; ?>
-                <?php if ($resultadoLivros->num_rows === 0): ?>
+                <?php if (!$livrosDisponiveis): ?>
                     <a href="cadastrolivro.php">Cadastrar livro</a>
                 <?php endif; ?>
             </div>
@@ -92,45 +83,37 @@ $activePage = 'emprestimos';
         <form action="registrar_emprestimo.php" method="post">
 
             <div class="mb-3">
-                <label for="aluno" class="form-label">Aluno</label>
-
-                <select
-                    name="aluno_id"
-                    id="aluno"
-                    class="form-select"
-                    required
+                <label for="busca_aluno" class="form-label">Pesquisar aluno</label>
+                <input
+                    type="search"
+                    id="busca_aluno"
+                    class="form-control"
+                    placeholder="Digite o nome ou a turma do aluno"
+                    autocomplete="off"
+                    aria-describedby="status_busca_aluno aluno_selecionado"
+                    data-search-url="buscar_alunos.php"
                 >
-                    <option value="">Selecione um aluno</option>
-
-                    <?php while ($aluno = $resultadoAlunos->fetch_assoc()): ?>
-                        <option value="<?= (int) $aluno['id'] ?>">
-                            <?= htmlspecialchars($aluno['nome']) ?>
-                            - <?= htmlspecialchars($aluno['turma']) ?>
-                        </option>
-                    <?php endwhile; ?>
-
-                </select>
+                <input type="hidden" name="aluno_id" id="aluno_id">
+                <div id="status_busca_aluno" class="form-text" role="status" aria-live="polite"></div>
+                <ul id="resultados_alunos" class="list-group mt-2" aria-label="Resultados da pesquisa de alunos"></ul>
+                <div id="aluno_selecionado" class="alert alert-success mt-3 mb-0" role="status" hidden></div>
             </div>
 
             <div class="mb-3">
-                <label for="livro" class="form-label">Livro</label>
-
-                <select
-                    name="livro_id"
-                    id="livro"
-                    class="form-select"
-                    required
+                <label for="busca_livro" class="form-label">Pesquisar livro</label>
+                <input
+                    type="search"
+                    id="busca_livro"
+                    class="form-control"
+                    placeholder="Digite título, autor ou ISBN"
+                    autocomplete="off"
+                    aria-describedby="status_busca_livro livro_selecionado"
+                    data-search-url="buscar_livros.php"
                 >
-                    <option value="">Selecione um livro</option>
-
-                    <?php while ($livro = $resultadoLivros->fetch_assoc()): ?>
-                        <option value="<?= (int) $livro['id'] ?>">
-                            <?= htmlspecialchars($livro['titulo']) ?>
-                            - <?= (int) $livro['disponiveis'] ?> disponível(is)
-                        </option>
-                    <?php endwhile; ?>
-
-                </select>
+                <input type="hidden" name="livro_id" id="livro_id">
+                <div id="status_busca_livro" class="form-text" role="status" aria-live="polite"></div>
+                <ul id="resultados_livros" class="list-group mt-2" aria-label="Resultados da pesquisa"></ul>
+                <div id="livro_selecionado" class="alert alert-success mt-3 mb-0" role="status" hidden></div>
             </div>
 
             <div class="row">
@@ -264,4 +247,5 @@ $activePage = 'emprestimos';
     </section>
 
     </div>
+<script src="js/emprestimos.js?v=2"></script>
 <?php require 'includes/footer.php'; ?>
