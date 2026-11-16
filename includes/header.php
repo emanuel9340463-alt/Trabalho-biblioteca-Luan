@@ -43,9 +43,9 @@ $navigationItems = [
         <nav class="sidebar-nav">
             <?php foreach ($navigationItems as $item): ?>
                 <a class="sidebar-link<?= $activePage === $item['id'] ? ' is-active' : '' ?>"
-                   href="<?= htmlspecialchars($item['href'], ENT_QUOTES, 'UTF-8') ?>"
-                   title="<?= htmlspecialchars($item['label'], ENT_QUOTES, 'UTF-8') ?>"
-                   <?= $activePage === $item['id'] ? 'aria-current="page"' : '' ?>>
+                    href="<?= htmlspecialchars($item['href'], ENT_QUOTES, 'UTF-8') ?>"
+                    title="<?= htmlspecialchars($item['label'], ENT_QUOTES, 'UTF-8') ?>"
+                    <?= $activePage === $item['id'] ? 'aria-current="page"' : '' ?>>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><?= $item['icon'] ?></svg>
                     <span class="sidebar-label"><?= htmlspecialchars($item['label'], ENT_QUOTES, 'UTF-8') ?></span>
                 </a>
