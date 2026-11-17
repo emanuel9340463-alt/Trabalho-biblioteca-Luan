@@ -10,6 +10,7 @@ $navigationItems = [
     ['id' => 'alunos', 'label' => 'Cadastrar alunos', 'href' => 'cadastroaluno.php', 'icon' => '<path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M20 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>'],
     ['id' => 'pesquisa', 'label' => 'Acervo e pesquisa', 'href' => 'pesquisa.php', 'icon' => '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>'],
     ['id' => 'emprestimos', 'label' => 'Empréstimos', 'href' => 'emprestimos.php', 'icon' => '<path d="M8 6h13M8 12h13M8 18h13"/><path d="m3 6 1 1 2-2M3 12l1 1 2-2M3 18l1 1 2-2"/>'],
+    ['id' => 'historico', 'label' => 'Histórico de empréstimos', 'href' => 'historico.php', 'icon' => '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M12 14v3l2 1"/>'],
 ];
 ?>
 <!doctype html>
@@ -22,7 +23,7 @@ $navigationItems = [
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css?v=3">
     <?php foreach ($pageStyles as $pageStyle): ?>
-        <link rel="stylesheet" href="<?= htmlspecialchars($pageStyle, ENT_QUOTES, 'UTF-8') ?>?v=2">
+        <link rel="stylesheet" href="<?= htmlspecialchars($pageStyle, ENT_QUOTES, 'UTF-8') ?>?v=3">
     <?php endforeach; ?>
 </head>
 <body class="app-body">

@@ -1,0 +1,147 @@
+.history-summary {
+  margin-bottom: 1.25rem;
+}
+
+.history-filter {
+  margin-bottom: 1.25rem;
+}
+
+.history-filter-heading,
+.history-report-heading-screen {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.history-filter-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.history-date-field {
+  width: min(100%, 220px);
+}
+
+.history-date-field .form-label {
+  display: block;
+}
+
+.history-filter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.history-report {
+  min-width: 0;
+}
+
+.history-report-heading-screen {
+  margin-bottom: 1rem;
+}
+
+.history-print-heading {
+  display: none;
+}
+
+.history-table {
+  min-width: 860px;
+}
+
+@media (max-width: 575.98px) {
+  .history-filter-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .history-filter-actions,
+  .history-filter-actions .btn {
+    width: 100%;
+  }
+}
+
+@media print {
+  @page {
+    size: landscape;
+    margin: 14mm;
+  }
+
+  body.app-body {
+    min-width: 0;
+    background: #fff;
+    color: #000;
+  }
+
+  .app-sidebar,
+  .sidebar-backdrop,
+  .app-topbar,
+  .page-heading,
+  .history-summary,
+  .history-filter,
+  .history-report-heading-screen,
+  .alert {
+    display: none !important;
+  }
+
+  .app-main {
+    margin: 0 !important;
+  }
+
+  .app-content {
+    width: 100%;
+    max-width: none;
+    padding: 0;
+  }
+
+  .history-report.surface-card {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: #fff;
+    box-shadow: none;
+  }
+
+  .history-print-heading {
+    display: block;
+    margin-bottom: 1rem;
+  }
+
+  .history-print-heading h1 {
+    margin: 0;
+    color: #173f35;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 18pt;
+  }
+
+  .history-print-heading p {
+    margin: 0.3rem 0 0;
+    color: #555;
+    font-size: 10pt;
+  }
+
+  .history-table {
+    min-width: 0;
+    width: 100%;
+    font-size: 9pt;
+  }
+
+  .history-table thead th {
+    border: 1px solid #d5ddd4 !important;
+    background: #edf2eb !important;
+    color: #34483b !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .history-table tbody td {
+    border: 1px solid #e5e7e2 !important;
+  }
+
+  .history-table tr {
+    break-inside: avoid;
+  }
+}
