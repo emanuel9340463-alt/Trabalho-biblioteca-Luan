@@ -8,7 +8,7 @@ Resolver:
 * Hover de informações em pesquisa desalinhado entre livros e capas não aparecem no offcanvas - Resolvido
 * As vezes os títulos dos livros aparecem em outra linguas (em cadastro) - Resolvido
 *Exibir a mesma mensagem de "capa não encontrada" no offcanvas - Resolvido
-**Emprestimo quebrou - resolver
+**Emprestimo quebrou - Resolvido
 
 Adicionar:
 1º -Opção de promover os alunos de série

@@ -3,7 +3,7 @@ require_once __DIR__ . '/../../config/conexao.php';
 
 // Aceitar somente requisições POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: emprestimos.php');
+    header('Location: ../../emprestimos.php');
     exit;
 }
 
@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $emprestimoId = filter_input(INPUT_POST, 'emprestimo_id', FILTER_VALIDATE_INT);
 
 if (!$emprestimoId || $emprestimoId <= 0) {
-    header('Location: emprestimos.php?resultado=dados_invalidos');
+    header('Location: ../../emprestimos.php?resultado=dados_invalidos');
     exit;
 }
 
@@ -52,12 +52,12 @@ try {
     // Confirmar a operação
     $conn->commit();
 
-    header('Location: emprestimos.php?resultado=devolucao_sucesso');
+    header('Location: ../../emprestimos.php?resultado=devolucao_sucesso');
     exit;
 
 } catch (Throwable $erro) {
     $conn->rollback();
 
-    header('Location: emprestimos.php?resultado=erro');
+    header('Location: ../../emprestimos.php?resultado=erro');
     exit;
 }
