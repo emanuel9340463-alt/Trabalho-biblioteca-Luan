@@ -161,13 +161,16 @@ require 'includes/header.php';
 $disponivel = $disponiveis > 0;
               $isbn = preg_replace('/[^0-9Xx]/', '', (string) $livro['isbn']);
               $capaLocal = null;
-              foreach (['jpg', 'png', 'webp'] as $extensaoCapa) {
+              foreach (['jpg', 'jpeg', 'png', 'webp'] as $extensaoCapa) {
                   $caminhoCapa = __DIR__ . '/img/capas/' . $isbn . '.' . $extensaoCapa;
                   if (is_file($caminhoCapa)) {
                       $capaLocal = 'img/capas/' . rawurlencode($isbn) . '.' . $extensaoCapa;
                       break;
                   }
               }
+              $capaRemota = $isbn !== ''
+                  ? 'https://covers.openlibrary.org/b/isbn/' . rawurlencode($isbn) . '-M.jpg?default=false'
+                  : '';
             ?>
             <article
   class="book-card"
@@ -184,6 +187,7 @@ $disponivel = $disponiveis > 0;
   data-codigo="<?= escapar($livro['codigo_bibli']) ?>"
   data-quantidade="<?= escapar($livro['quantidade']) ?>"
   data-capa="<?= escapar($capaLocal ?? '') ?>"
+  data-capa-fallback="<?= escapar($capaRemota) ?>"
   data-disponiveis="<?= $disponiveis ?>"
 >
               <div class="book-cover">
@@ -198,9 +202,9 @@ $disponivel = $disponiveis > 0;
                     loading="lazy"
                     decoding="async"
                   >
-                <?php elseif ($isbn !== ''): ?>
+                <?php elseif ($capaRemota !== ''): ?>
                   <img
-                    src="https://covers.openlibrary.org/b/isbn/<?= rawurlencode($isbn) ?>-M.jpg?default=false"
+                    src="<?= escapar($capaRemota) ?>"
                     alt="Capa do livro <?= escapar($livro['titulo']) ?>"
                     loading="lazy"
                     decoding="async"
@@ -327,9 +331,28 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Carrega a capa
         const capa = document.getElementById('capaPainel');
+        capa.onload = function () {
+            capa.hidden = capa.naturalWidth <= 1;
+        };
+        capa.onerror = function () {
+            const fallback = cartao.dataset.capaFallback;
+            const fallbackUrl = fallback
+                ? new URL(fallback, document.baseURI).href
+                : '';
+
+            if (fallbackUrl && capa.src !== fallbackUrl) {
+                capa.src = fallback;
+                return;
+            }
+
+            capa.hidden = true;
+        };
 
         if (cartao.dataset.capa) {
             capa.src = cartao.dataset.capa;
+            capa.hidden = false;
+        } else if (cartao.dataset.capaFallback) {
+            capa.src = cartao.dataset.capaFallback;
             capa.hidden = false;
         } else {
             capa.removeAttribute('src');
@@ -356,7 +379,7 @@ status.textContent = disponivel
 
         try {
             const resposta = await fetch(
-                'buscar_emprestimos.php?livro_id=' +
+                'php/api/buscar_emprestimos.php?livro_id=' +
                 encodeURIComponent(cartao.dataset.id)
             );
 

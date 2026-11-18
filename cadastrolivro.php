@@ -88,62 +88,120 @@ function baixarConteudo($url, $limiteBytes = 1024 * 1024, $hostsPermitidos = [])
         return null;
     }
 
-    $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+    for ($redirecionamento = 0; $redirecionamento <= 5; $redirecionamento++) {
+        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+        $porta = parse_url($url, PHP_URL_PORT);
 
-    if (
-        parse_url($url, PHP_URL_SCHEME) !== 'https' ||
-        !in_array($host, $hostsPermitidos, true)
-    ) {
-        return null;
-    }
-
-    $conteudo = '';
-    $limiteExcedido = false;
-
-    $curl = curl_init($url);
-
-    if ($curl === false) {
-        return null;
-    }
-
-    curl_setopt_array($curl, [
-        CURLOPT_RETURNTRANSFER => false,
-        CURLOPT_FOLLOWLOCATION => false,
-        CURLOPT_CONNECTTIMEOUT => 5,
-        CURLOPT_TIMEOUT => 12,
-        CURLOPT_PROTOCOLS => CURLPROTO_HTTPS,
-        CURLOPT_USERAGENT => 'BibliotecaLuan/1.0',
-
-        CURLOPT_WRITEFUNCTION => function ($curl, $dados) use (
-            &$conteudo,
-            $limiteBytes,
-            &$limiteExcedido
+        if (
+            parse_url($url, PHP_URL_SCHEME) !== 'https' ||
+            !in_array($host, $hostsPermitidos, true) ||
+            ($porta !== null && $porta !== 443)
         ) {
-            if (strlen($conteudo) + strlen($dados) > $limiteBytes) {
-                $limiteExcedido = true;
-                return 0;
-            }
+            return null;
+        }
 
-            $conteudo .= $dados;
-            return strlen($dados);
-        },
-    ]);
+        $conteudo = '';
+        $localizacao = '';
+        $limiteExcedido = false;
+        $curl = curl_init($url);
 
-    $executado = curl_exec($curl);
-    $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        if ($curl === false) {
+            return null;
+        }
 
-    curl_close($curl);
+        curl_setopt_array($curl, [
+            CURLOPT_RETURNTRANSFER => false,
+            CURLOPT_FOLLOWLOCATION => false,
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_TIMEOUT => 12,
+            CURLOPT_PROTOCOLS => CURLPROTO_HTTPS,
+            CURLOPT_USERAGENT => 'BibliotecaLuan/1.0',
 
-    if (
-        $executado === false ||
-        $status !== 200 ||
-        $conteudo === '' ||
-        $limiteExcedido
-    ) {
+            CURLOPT_HEADERFUNCTION => function ($curl, $cabecalho) use (&$localizacao) {
+                if (stripos($cabecalho, 'Location:') === 0) {
+                    $localizacao = trim(substr($cabecalho, strlen('Location:')));
+                }
+
+                return strlen($cabecalho);
+            },
+
+            CURLOPT_WRITEFUNCTION => function ($curl, $dados) use (
+                &$conteudo,
+                $limiteBytes,
+                &$limiteExcedido
+            ) {
+                if (strlen($conteudo) + strlen($dados) > $limiteBytes) {
+                    $limiteExcedido = true;
+                    return 0;
+                }
+
+                $conteudo .= $dados;
+                return strlen($dados);
+            },
+        ]);
+
+        $executado = curl_exec($curl);
+        $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        curl_close($curl);
+
+        if ($executado === false || $limiteExcedido) {
+            return null;
+        }
+
+        if ($status === 200 && $conteudo !== '') {
+            return $conteudo;
+        }
+
+        if (
+            !in_array($status, [301, 302, 303, 307, 308], true) ||
+            $localizacao === '' ||
+            $redirecionamento === 5
+        ) {
+            return null;
+        }
+
+        $url = resolverUrlRedirecionamento($url, $localizacao);
+        if ($url === null) {
+            return null;
+        }
+    }
+
+    return null;
+}
+
+function resolverUrlRedirecionamento($url, $localizacao)
+{
+    $destino = parse_url($localizacao);
+    if ($destino === false) {
         return null;
     }
 
-    return $conteudo;
+    if (isset($destino['scheme'])) {
+        return $localizacao;
+    }
+
+    $origem = parse_url($url);
+    if ($origem === false || !isset($origem['scheme'], $origem['host'])) {
+        return null;
+    }
+
+    $base = $origem['scheme'] . '://' . $origem['host'];
+    if (isset($origem['port'])) {
+        $base .= ':' . $origem['port'];
+    }
+
+    if (strpos($localizacao, '//') === 0) {
+        return $origem['scheme'] . ':' . $localizacao;
+    }
+
+    if (strpos($localizacao, '/') === 0) {
+        return $base . $localizacao;
+    }
+
+    $caminho = $origem['path'] ?? '/';
+    $diretorio = substr($caminho, 0, strrpos($caminho, '/') + 1);
+
+    return $base . $diretorio . $localizacao;
 }
 
 // =====================================================
@@ -474,6 +532,15 @@ function salvarCapaPorIsbn($isbn, $arquivoEnviado, $titulo, $autor)
         return false;
     }
 
+    $diretorioCapas = __DIR__ . DIRECTORY_SEPARATOR
+        . 'img' . DIRECTORY_SEPARATOR . 'capas';
+
+    foreach (['jpg', 'jpeg', 'png', 'webp'] as $extensao) {
+        if (is_file($diretorioCapas . DIRECTORY_SEPARATOR . $isbn . '.' . $extensao)) {
+            return 'local';
+        }
+    }
+
     // 1. Open Library por ISBN
     $resultado = buscarCapaOpenLibraryISBN($isbn);
 
@@ -725,7 +792,7 @@ require 'includes/header.php';
         <section class="surface-card">
             <div class="mb-4">
                 <h2 class="surface-title">Dados do livro</h2>
-                <p class="surface-subtitle">Informe o ISBN para preencher automaticamente os dados disponíveis na web.</p>
+                <p class="surface-subtitle">Informe o ISBN para buscar uma edição em português e preencher os dados bibliográficos.</p>
             </div>
 
             <form
@@ -799,5 +866,5 @@ require 'includes/header.php';
         </section>
     </div>
 </div>
-<script src="js/script.js?v=3"></script>
+<script src="js/script.js?v=4"></script>
 <?php require 'includes/footer.php'; ?>

@@ -3,11 +3,14 @@ Emprestimo - feito
 
 Resolver: 
 *Alunos passarem de ano
-*Algumas vezes quando o programa encontra o livro o mesmo é salvo como e a capa não fosse encontrada
+*Algumas vezes quando o programa encontra o livro o mesmo é salvo como e a capa não fosse encontrada - Resolvido
 *Estilizar o off-canvas - Resolvido
 *Organização de pastas - 
 * Hover de informações em pesquisa desalinhado entre livros e capas não aparecem no offcanvas
-* As vezes os títulos dos livros aparecem em outra lingus
+* As vezes os títulos dos livros aparecem em outra linguas (em cadastro) - Resolvido
 
 Adicionar:
+-Opção de promover os alunos de série
 -Opção de cadastrar os livros escaneando o código com leitor de barras
+-Painel de Admin para programador
+-Comentários explicando o código 

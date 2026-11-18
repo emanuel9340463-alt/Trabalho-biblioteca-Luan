@@ -80,7 +80,7 @@ $activePage = 'emprestimos';
             </div>
         <?php endif; ?>
 
-        <form action="registrar_emprestimo.php" method="post">
+        <form action="php/actions/registrar_emprestimo.php" method="post">
 
             <div class="mb-3">
                 <label for="busca_aluno" class="form-label">Pesquisar aluno</label>
@@ -91,7 +91,7 @@ $activePage = 'emprestimos';
                     placeholder="Digite o nome ou a turma do aluno"
                     autocomplete="off"
                     aria-describedby="status_busca_aluno aluno_selecionado"
-                    data-search-url="buscar_alunos.php"
+                    data-search-url="php/api/buscar_alunos.php"
                 >
                 <input type="hidden" name="aluno_id" id="aluno_id">
                 <div id="status_busca_aluno" class="form-text" role="status" aria-live="polite"></div>
@@ -108,7 +108,7 @@ $activePage = 'emprestimos';
                     placeholder="Digite título, autor ou ISBN"
                     autocomplete="off"
                     aria-describedby="status_busca_livro livro_selecionado"
-                    data-search-url="buscar_livros.php"
+                    data-search-url="php/api/buscar_livros.php"
                 >
                 <input type="hidden" name="livro_id" id="livro_id">
                 <div id="status_busca_livro" class="form-text" role="status" aria-live="polite"></div>
@@ -214,7 +214,7 @@ $activePage = 'emprestimos';
                                 </td>
 
                                 <td>
-                                    <form action="registrar_devolucao.php" method="post">
+                                    <form action="php/actions/registrar_devolucao.php" method="post">
                                         <input
                                             type="hidden"
                                             name="emprestimo_id"

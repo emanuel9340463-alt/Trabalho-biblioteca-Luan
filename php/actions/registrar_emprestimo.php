@@ -1,6 +1,6 @@
 ```php
 <?php
-require_once 'config/conexao.php';
+require_once __DIR__ . '/../../config/conexao.php';
 
 // Só permite acesso por envio de formulário POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
