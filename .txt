@@ -2,15 +2,15 @@ Historico e relatório - feito
 Emprestimo - feito
 
 Resolver: 
-*Alunos passarem de ano
+*Alunos passarem de ano - 
 *Algumas vezes quando o programa encontra o livro o mesmo é salvo como e a capa não fosse encontrada - Resolvido
 *Estilizar o off-canvas - Resolvido
-*Organização de pastas - 
-* Hover de informações em pesquisa desalinhado entre livros e capas não aparecem no offcanvas
+* Hover de informações em pesquisa desalinhado entre livros e capas não aparecem no offcanvas - Resolvido
 * As vezes os títulos dos livros aparecem em outra linguas (em cadastro) - Resolvido
+*Exibir a mesma mensagem de "capa não encontrada" no offcanvas - Resolvido
 
 Adicionar:
--Opção de promover os alunos de série
--Opção de cadastrar os livros escaneando o código com leitor de barras
--Painel de Admin para programador
--Comentários explicando o código 
+1º -Opção de promover os alunos de série
+2º -Comentários explicando o código 
+3º -Opção de cadastrar os livros escaneando o código com leitor de barras
+4º -Painel de Admin para programador

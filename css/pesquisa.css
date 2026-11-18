@@ -263,6 +263,11 @@ body {
   padding: 0.7rem 0;
 }
 
+.app-content #painelLivro .painel-book-cover {
+  height: auto;
+  aspect-ratio: 2 / 3;
+}
+
 .app-content #painelLivro #capaPainel {
   border: 1px solid var(--line-warm);
   box-shadow: 0 5px 14px rgb(52 64 84 / 10%);

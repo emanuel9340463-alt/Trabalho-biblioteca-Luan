@@ -252,12 +252,24 @@ $disponivel = $disponiveis > 0;
 
     <div class="row g-3 mb-4">
       <div class="col-5">
-        <img
-          id="capaPainel"
-          src=""
-          alt="Capa do livro"
-          class="img-fluid rounded"
-        >
+        <div class="book-cover painel-book-cover rounded">
+          <div
+            id="placeholderCapaPainel"
+            class="cover-placeholder"
+            role="img"
+            aria-label="Capa não disponível"
+          >
+            <span class="cover-mark" aria-hidden="true">L</span>
+            <span>Capa não disponível</span>
+          </div>
+          <img
+            id="capaPainel"
+            src=""
+            alt="Capa do livro"
+            class="img-fluid rounded"
+            hidden
+          >
+        </div>
       </div>
 
       <div class="col-7">
@@ -331,8 +343,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Carrega a capa
         const capa = document.getElementById('capaPainel');
+        const placeholderCapa = document.getElementById('placeholderCapaPainel');
         capa.onload = function () {
             capa.hidden = capa.naturalWidth <= 1;
+            placeholderCapa.hidden = !capa.hidden;
         };
         capa.onerror = function () {
             const fallback = cartao.dataset.capaFallback;
@@ -346,17 +360,21 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             capa.hidden = true;
+            placeholderCapa.hidden = false;
         };
 
         if (cartao.dataset.capa) {
             capa.src = cartao.dataset.capa;
             capa.hidden = false;
+            placeholderCapa.hidden = true;
         } else if (cartao.dataset.capaFallback) {
             capa.src = cartao.dataset.capaFallback;
             capa.hidden = false;
+            placeholderCapa.hidden = true;
         } else {
             capa.removeAttribute('src');
             capa.hidden = true;
+            placeholderCapa.hidden = false;
         }
 
         // Atualiza a disponibilidade
