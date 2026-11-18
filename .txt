@@ -12,7 +12,14 @@ Resolver:
 *Fazer com que os livros vao aparecendo quando se digita em pesquisa.php
 
 Adicionar:
-1º -Opção de promover os alunos de série
+1º -Opção de promover os alunos de série - Feito
 2º -Comentários explicando o código 
-3º -Opção de cadastrar os livros escaneando o código com leitor de barras
+3º -Opção de cadastrar os livros escaneando o código com leitor de barras - Feito
 4º -Painel de Admin para programador
+
+
+git switch -c feature/leitor-codigo-barras
+
+
+Rodar programa no Ngork (remote)
+ngrok http 80

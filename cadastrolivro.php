@@ -785,6 +785,7 @@ $conn->close();
 $pageTitle = 'Cadastrar livro';
 $pageDescription = 'Cadastre títulos e exemplares. Os dados bibliográficos podem ser encontrados pelo ISBN.';
 $activePage = 'livros';
+$pageStyles = ['css/leitor-isbn.css'];
 require 'includes/header.php';
 ?>
 <div class="row justify-content-center">
@@ -792,7 +793,7 @@ require 'includes/header.php';
         <section class="surface-card">
             <div class="mb-4">
                 <h2 class="surface-title">Dados do livro</h2>
-                <p class="surface-subtitle">Informe o ISBN para buscar uma edição em português e preencher os dados bibliográficos.</p>
+                <p class="surface-subtitle">Informe ou escaneie o ISBN para buscar e preencher os dados bibliográficos.</p>
             </div>
 
             <form
@@ -807,7 +808,16 @@ require 'includes/header.php';
             >
                 <div class="row">
                     <div class="col-12 col-lg-7 mb-3">
-                        <label class="form-label" for="isbn">ISBN</label>
+                        <div class="isbn-field-heading">
+                            <label class="form-label mb-0" for="isbn">ISBN</label>
+                            <button
+                                class="btn btn-outline-primary btn-sm"
+                                type="button"
+                                data-open-isbn-scanner
+                                aria-haspopup="dialog"
+                                aria-controls="isbnScannerDialog"
+                            >Escanear código de barras</button>
+                        </div>
                         <input type="text" name="isbn" class="form-control" id="isbn" placeholder="Digite ou escaneie o ISBN" value="<?= escapar($isbn) ?>" inputmode="numeric" autocomplete="off" required>
                         <div id="isbnLookupStatus" class="isbn-lookup-status mt-2" aria-live="polite">Ao informar o ISBN, vamos procurar os dados do livro.</div>
                         <div class="isbn-cover-preview mt-2" aria-live="polite">
@@ -863,8 +873,57 @@ require 'includes/header.php';
                     <?php endif; ?>
                 </div>
             </form>
+
+            <dialog
+                class="isbn-scanner-dialog"
+                id="isbnScannerDialog"
+                aria-labelledby="isbnScannerTitle"
+            >
+                <div class="isbn-scanner-content">
+                    <header class="isbn-scanner-header">
+                        <div>
+                            <p class="eyebrow mb-1">CADASTRO DE LIVRO</p>
+                            <h2 id="isbnScannerTitle">Escanear ISBN</h2>
+                        </div>
+                        <button
+                            class="isbn-scanner-close"
+                            type="button"
+                            data-close-isbn-scanner
+                            aria-label="Fechar leitor"
+                        >×</button>
+                    </header>
+
+                    <p class="isbn-scanner-instructions">
+                        Posicione o código de barras EAN-13 do livro dentro da moldura.
+                    </p>
+
+                    <div class="isbn-scanner-camera">
+                        <video id="isbnScannerVideo" muted playsinline aria-label="Imagem da câmera"></video>
+                        <div class="isbn-scanner-guide" aria-hidden="true">
+                            <span></span>
+                        </div>
+                    </div>
+
+                    <div class="isbn-scanner-controls">
+                        <label class="form-label" for="isbnScannerCamera">Câmera</label>
+                        <select class="form-select" id="isbnScannerCamera" hidden></select>
+                        <p id="isbnScannerStatus" class="isbn-scanner-status" role="status" aria-live="polite">
+                            Aguardando acesso à câmera...
+                        </p>
+                        <p id="isbnScannerError" class="alert alert-danger mb-0" role="alert" hidden></p>
+                    </div>
+
+                    <footer class="isbn-scanner-footer">
+                        <button class="btn btn-outline-primary" type="button" data-close-isbn-scanner>
+                            Cancelar leitura
+                        </button>
+                    </footer>
+                </div>
+            </dialog>
         </section>
     </div>
 </div>
-<script src="js/script.js?v=4"></script>
+<script src="node_modules/@zxing/browser/umd/zxing-browser.min.js"></script>
+<script src="js/leitor-isbn.js?v=2"></script>
+<script src="js/script.js?v=5"></script>
 <?php require 'includes/footer.php'; ?>

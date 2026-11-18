@@ -147,6 +147,54 @@ async function buscarMetadadosGoogle(isbn, signal) {
   };
 }
 
+async function buscarMetadadosOpenLibrary(isbn, signal) {
+  const pesquisa = new URLSearchParams({
+    bibkeys: `ISBN:${isbn}`,
+    format: "json",
+    jscmd: "data",
+  });
+  const resposta = await fetch(
+    `https://openlibrary.org/api/books?${pesquisa}`,
+    { signal },
+  );
+
+  if (!resposta.ok) {
+    throw new Error("Não foi possível consultar os dados bibliográficos.");
+  }
+
+  const dados = await resposta.json();
+  const livro = dados[`ISBN:${isbn}`];
+
+  if (!livro?.title) return null;
+
+  const assunto = Array.isArray(livro.subjects)
+    ? livro.subjects.find((item) => typeof item?.name === "string")?.name || ""
+    : "";
+
+  return {
+    titulo: livro.title.slice(0, 200),
+    autor: Array.isArray(livro.authors)
+      ? livro.authors
+          .map((item) => item?.name)
+          .filter((nome) => typeof nome === "string")
+          .join(", ")
+          .slice(0, 100)
+      : "",
+    genero: (traduzirCategoria(assunto) || assunto).slice(0, 100),
+  };
+}
+
+async function buscarMetadados(isbn, signal) {
+  try {
+    const metadadosGoogle = await buscarMetadadosGoogle(isbn, signal);
+    if (metadadosGoogle) return metadadosGoogle;
+  } catch (erro) {
+    if (signal.aborted) throw erro;
+  }
+
+  return buscarMetadadosOpenLibrary(isbn, signal);
+}
+
 function traduzirCategoria(categoria) {
   const traducoes = {
     fiction: "Ficção",
@@ -238,13 +286,13 @@ async function pesquisarMetadados() {
   isbnLookupStatus.className = "isbn-lookup-status mt-2";
 
   try {
-    const metadados = await buscarMetadadosGoogle(isbn, controlador.signal);
+    const metadados = await buscarMetadados(isbn, controlador.signal);
 
     if (buscaId !== buscaMetadadosAtual) return;
 
     if (!metadados) {
       isbnLookupStatus.textContent =
-        "Não encontramos uma edição em português para este ISBN. Confira o número ou preencha os dados manualmente.";
+        "Não encontramos dados bibliográficos para este ISBN. Confira o número ou preencha os dados manualmente.";
       isbnLookupStatus.className = "isbn-lookup-status is-error mt-2";
       return;
     }
@@ -261,8 +309,8 @@ async function pesquisarMetadados() {
 
     isbnLookupStatus.textContent =
       erro.name === "AbortError"
-        ? "A busca por uma edição em português demorou mais que o esperado. Você pode preencher os dados manualmente."
-        : "Não foi possível consultar uma edição em português. Tente novamente ou preencha os dados manualmente.";
+        ? "A busca pelos dados do livro demorou mais que o esperado. Você pode preencher os dados manualmente."
+        : "Não foi possível consultar os dados bibliográficos. Tente novamente ou preencha os dados manualmente.";
     isbnLookupStatus.className = "isbn-lookup-status is-error mt-2";
   } finally {
     clearTimeout(temporizadorLimite);
