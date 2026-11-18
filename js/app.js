@@ -3,6 +3,10 @@
   const collapseButton = document.querySelector("[data-sidebar-toggle]");
   const mobileButton = document.querySelector("[data-mobile-menu-toggle]");
   const backdrop = document.querySelector("[data-sidebar-backdrop]");
+  const submenuButton = sidebar?.querySelector("[data-submenu-toggle]");
+  const submenu = submenuButton
+    ? document.getElementById(submenuButton.getAttribute("aria-controls"))
+    : null;
 
   if (!sidebar) return;
 
@@ -29,6 +33,33 @@
     );
   } catch (error) {
     console.warn("Não foi possível carregar a preferência do menu.", error);
+  }
+
+  if (submenuButton && submenu) {
+    const activePage = submenu.querySelector('[aria-current="page"]');
+    const desktopCollapsed =
+      window.matchMedia("(min-width: 768px)").matches &&
+      document.body.classList.contains("sidebar-collapsed");
+    const shouldOpen = Boolean(activePage) && !desktopCollapsed;
+    submenu.hidden = !shouldOpen;
+    submenuButton.setAttribute("aria-expanded", String(shouldOpen));
+
+    submenuButton.addEventListener("click", () => {
+      const desktop = window.matchMedia("(min-width: 768px)").matches;
+      const collapsed =
+        desktop && document.body.classList.contains("sidebar-collapsed");
+
+      if (collapsed) {
+        setCollapsed(false);
+        submenu.hidden = false;
+        submenuButton.setAttribute("aria-expanded", "true");
+        return;
+      }
+
+      const open = submenuButton.getAttribute("aria-expanded") !== "true";
+      submenu.hidden = !open;
+      submenuButton.setAttribute("aria-expanded", String(open));
+    });
   }
 
   collapseButton?.addEventListener("click", () => {

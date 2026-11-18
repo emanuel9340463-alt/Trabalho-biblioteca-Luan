@@ -7,7 +7,16 @@ $pageStyles = $pageStyles ?? [];
 $navigationItems = [
     ['id' => 'dashboard', 'label' => 'Visão geral', 'href' => 'index.php', 'icon' => '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>'],
     ['id' => 'livros', 'label' => 'Cadastrar livros', 'href' => 'cadastrolivro.php', 'icon' => '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 5.5v16M8 7h8M8 11h8"/>'],
-    ['id' => 'alunos', 'label' => 'Cadastrar alunos', 'href' => 'cadastroaluno.php', 'icon' => '<path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M20 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>'],
+    [
+        'id' => 'alunos',
+        'label' => 'Alunos',
+        'icon' => '<path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M20 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+        'children' => [
+            ['id' => 'alunos', 'label' => 'Cadastrar Aluno', 'href' => 'cadastroaluno.php'],
+            ['id' => 'pesquisar_alunos', 'label' => 'Pesquisar Alunos', 'href' => 'pesquisar_alunos.php'],
+            ['id' => 'promover_alunos', 'label' => 'Promover Alunos', 'href' => 'promover_alunos.php'],
+        ],
+    ],
     ['id' => 'pesquisa', 'label' => 'Acervo e pesquisa', 'href' => 'pesquisa.php', 'icon' => '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>'],
     ['id' => 'emprestimos', 'label' => 'Empréstimos', 'href' => 'emprestimos.php', 'icon' => '<path d="M8 6h13M8 12h13M8 18h13"/><path d="m3 6 1 1 2-2M3 12l1 1 2-2M3 18l1 1 2-2"/>'],
     ['id' => 'historico', 'label' => 'Histórico de empréstimos', 'href' => 'historico.php', 'icon' => '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M12 14v3l2 1"/>'],
@@ -43,13 +52,48 @@ $navigationItems = [
         <p class="sidebar-section sidebar-label">MENU</p>
         <nav class="sidebar-nav">
             <?php foreach ($navigationItems as $item): ?>
-                <a class="sidebar-link<?= $activePage === $item['id'] ? ' is-active' : '' ?>"
-                    href="<?= htmlspecialchars($item['href'], ENT_QUOTES, 'UTF-8') ?>"
-                    title="<?= htmlspecialchars($item['label'], ENT_QUOTES, 'UTF-8') ?>"
-                    <?= $activePage === $item['id'] ? 'aria-current="page"' : '' ?>>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><?= $item['icon'] ?></svg>
-                    <span class="sidebar-label"><?= htmlspecialchars($item['label'], ENT_QUOTES, 'UTF-8') ?></span>
-                </a>
+                <?php if (isset($item['children'])): ?>
+                    <?php
+                    $submenuAtivo = false;
+                    foreach ($item['children'] as $child) {
+                        if ($activePage === $child['id']) {
+                            $submenuAtivo = true;
+                            break;
+                        }
+                    }
+                    ?>
+                    <div class="sidebar-menu-group">
+                        <button
+                            class="sidebar-link sidebar-menu-toggle<?= $submenuAtivo ? ' is-active' : '' ?>"
+                            type="button"
+                            data-submenu-toggle
+                            aria-controls="studentSubmenu"
+                            aria-expanded="<?= $submenuAtivo ? 'true' : 'false' ?>"
+                            title="<?= htmlspecialchars($item['label'], ENT_QUOTES, 'UTF-8') ?>"
+                        >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><?= $item['icon'] ?></svg>
+                            <span class="sidebar-label"><?= htmlspecialchars($item['label'], ENT_QUOTES, 'UTF-8') ?></span>
+                            <svg class="sidebar-menu-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                        </button>
+                        <div class="sidebar-submenu" id="studentSubmenu" <?= $submenuAtivo ? '' : 'hidden' ?>>
+                            <?php foreach ($item['children'] as $child): ?>
+                                <a
+                                    class="sidebar-submenu-link<?= $activePage === $child['id'] ? ' is-active' : '' ?>"
+                                    href="<?= htmlspecialchars($child['href'], ENT_QUOTES, 'UTF-8') ?>"
+                                    <?= $activePage === $child['id'] ? 'aria-current="page"' : '' ?>
+                                ><?= htmlspecialchars($child['label'], ENT_QUOTES, 'UTF-8') ?></a>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                <?php else: ?>
+                    <a class="sidebar-link<?= $activePage === $item['id'] ? ' is-active' : '' ?>"
+                        href="<?= htmlspecialchars($item['href'], ENT_QUOTES, 'UTF-8') ?>"
+                        title="<?= htmlspecialchars($item['label'], ENT_QUOTES, 'UTF-8') ?>"
+                        <?= $activePage === $item['id'] ? 'aria-current="page"' : '' ?>>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><?= $item['icon'] ?></svg>
+                        <span class="sidebar-label"><?= htmlspecialchars($item['label'], ENT_QUOTES, 'UTF-8') ?></span>
+                    </a>
+                <?php endif; ?>
             <?php endforeach; ?>
         </nav>
 

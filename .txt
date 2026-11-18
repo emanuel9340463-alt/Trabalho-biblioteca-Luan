@@ -9,6 +9,7 @@ Resolver:
 * As vezes os títulos dos livros aparecem em outra linguas (em cadastro) - Resolvido
 *Exibir a mesma mensagem de "capa não encontrada" no offcanvas - Resolvido
 **Emprestimo quebrou - Resolvido
+*Fazer com que os livros vao aparecendo quando se digita em pesquisa.php
 
 Adicionar:
 1º -Opção de promover os alunos de série
