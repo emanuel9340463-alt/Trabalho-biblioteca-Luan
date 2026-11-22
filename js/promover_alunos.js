@@ -1,4 +1,5 @@
 (() => {
+  // O formulário só será tratado se estiver presente nesta página.
   const form = document.querySelector("[data-promotion-form]");
 
   if (!form) return;

@@ -1,4 +1,5 @@
 (() => {
+  // Localiza os controles usados para recolher e abrir o menu lateral.
   const sidebar = document.getElementById("appSidebar");
   const collapseButton = document.querySelector("[data-sidebar-toggle]");
   const mobileButton = document.querySelector("[data-mobile-menu-toggle]");

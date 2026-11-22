@@ -40,6 +40,8 @@ $sqlLivros = "SELECT COUNT(*) AS total
 $resultadoLivros = $conn->query($sqlLivros);
 $livrosDisponiveis = (int) $resultadoLivros->fetch_assoc()['total'] > 0;
 $cadastrosCompletos = $totalAlunos > 0 && $livrosDisponiveis;
+
+// Define o título e a identificação da página usada pelo cabeçalho compartilhado.
 $pageTitle = 'Empréstimos';
 $pageDescription = 'Registre novas retiradas e acompanhe devoluções previstas e atrasos.';
 $activePage = 'emprestimos';

@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../../config/conexao.php';
 
+// Lista os alunos que possuem empréstimos ativos do livro informado.
 header('Content-Type: application/json; charset=utf-8');
 
 if (!isset($_GET['livro_id']) || !ctype_digit($_GET['livro_id'])) {

@@ -1,6 +1,7 @@
 <?php
 require_once 'config/conexao.php';
 
+// Valida o formato das datas recebidas nos filtros do histórico.
 function dataHistoricoValida($data)
 {
     if (!is_string($data) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $data)) {
@@ -21,6 +22,7 @@ $dataFim = isset($_GET['data_fim']) && is_string($_GET['data_fim'])
     ? trim($_GET['data_fim']) : '';
 $erroFiltro = '';
 
+// Impede intervalos inválidos ou uma data inicial posterior à data final.
 if (($dataInicio !== '' && !dataHistoricoValida($dataInicio))
     || ($dataFim !== '' && !dataHistoricoValida($dataFim))) {
     $erroFiltro = 'Informe datas válidas para consultar o histórico.';

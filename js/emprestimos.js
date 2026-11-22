@@ -1,4 +1,5 @@
 (() => {
+  // Referências aos campos e listas usadas na seleção do livro e do aluno.
   const searchInput = document.getElementById("busca_livro");
   const bookIdInput = document.getElementById("livro_id");
   const resultsList = document.getElementById("resultados_livros");

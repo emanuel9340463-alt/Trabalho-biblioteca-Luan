@@ -1,4 +1,5 @@
 <?php
+// Este bloco processa o formulário por POST e devolve texto simples ao JavaScript.
 require_once 'config/conexao.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {

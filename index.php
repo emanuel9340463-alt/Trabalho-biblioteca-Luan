@@ -1,6 +1,7 @@
 <?php
 require_once 'config/conexao.php';
 
+// Centraliza consultas do painel e transforma falhas SQL em uma exceção clara.
 function executarConsultaDashboard($conn, $sql)
 {
     $resultado = $conn->query($sql);
@@ -27,6 +28,7 @@ $resumoLivros = executarConsultaDashboard(
      ) a ON a.livro_id = l.id"
 )->fetch_assoc();
 
+// Contagens gerais exibidas nos cartões do painel.
 $totalAlunos = executarConsultaDashboard(
     $conn,
     'SELECT COUNT(*) AS total FROM alunos'
@@ -65,6 +67,7 @@ $emprestimosRecentes = executarConsultaDashboard(
      LIMIT 5"
 )->fetch_all(MYSQLI_ASSOC);
 
+// Fecha a conexão assim que todas as consultas necessárias foram concluídas.
 $conn->close();
 
 $pageTitle = 'Visão geral';

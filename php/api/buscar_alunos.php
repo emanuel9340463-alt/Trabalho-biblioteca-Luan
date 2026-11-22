@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../../config/conexao.php';
 
+// Responde em JSON para a pesquisa feita pelo JavaScript.
 header('Content-Type: application/json; charset=utf-8');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {

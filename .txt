@@ -2,7 +2,7 @@ Historico e relatório - feito
 Emprestimo - feito
 
 Resolver: 
-*Alunos passarem de ano - 
+*Alunos passarem de ano - Resolvido
 *Algumas vezes quando o programa encontra o livro o mesmo é salvo como e a capa não fosse encontrada - Resolvido
 *Estilizar o off-canvas - Resolvido
 * Hover de informações em pesquisa desalinhado entre livros e capas não aparecem no offcanvas - Resolvido
@@ -10,6 +10,7 @@ Resolver:
 *Exibir a mesma mensagem de "capa não encontrada" no offcanvas - Resolvido
 **Emprestimo quebrou - Resolvido
 *Fazer com que os livros vao aparecendo quando se digita em pesquisa.php
+*Alinhar inputs de cadastrolivro.php e index.php
 
 Adicionar:
 1º -Opção de promover os alunos de série - Feito

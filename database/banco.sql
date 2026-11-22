@@ -1,6 +1,8 @@
+-- Cria o banco usado pela aplicação e o seleciona para os próximos comandos.
 CREATE DATABASE IF NOT EXISTS biblioteca_luan;
 USE biblioteca_luan;
 
+-- Armazena os dados dos leitores cadastrados.
 CREATE TABLE IF NOT EXISTS alunos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
@@ -19,6 +21,7 @@ CREATE TABLE IF NOT EXISTS livros (
     quantidade INT UNSIGNED NOT NULL DEFAULT 1
 );
 
+-- Compatibilização: adiciona quantidade caso o banco seja de uma versão anterior.
 SET @coluna_quantidade_existe = (
     SELECT COUNT(*)
     FROM information_schema.columns
@@ -41,6 +44,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
     senha VARCHAR(255) NOT NULL
 );
 
+-- Cada linha representa uma retirada registrada no sistema.
 CREATE TABLE IF NOT EXISTS emprestimos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     aluno_id INT NOT NULL,
@@ -57,6 +61,7 @@ VALUES(1, 5,  CURDATE(), DATE_ADD(CURDATE(), INTERVAL 7 DAY));
 ALTER TABLE emprestimos
 ADD COLUMN data_devolucao_real DATE NULL;
 
+-- Consultas finais úteis para conferir os registros inseridos.
 SELECT * FROM livros;
 SELECT * FROM alunos;
 SELECT * FROM emprestimos;
