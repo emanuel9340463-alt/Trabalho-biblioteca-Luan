@@ -41,9 +41,9 @@ try {
     $stmt->close();
 
     // O hash fictício aproxima o custo de validação quando o e-mail não existe.
-    $hashArmadilha = '$2y$10$92IXUNpjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.';
+    $hashArmadilha = '$2y$10$mgA0UvFzklsdGtiXmefiE./G5gff7RxdvW/K.x7rF5XmjK.7Jr68K';
     if (defined('PASSWORD_ARGON2ID') && algoritmoHashSenha() === PASSWORD_ARGON2ID) {
-        $hashArmadilha = '$argon2id$v=19$m=65536,t=4,p=1$eWNLMGRvOTZzMHZwcmpZeA$8g8FbVhbs663W2wNbwg+K24pMUEGF7bYLbcyUemQu/g';
+        $hashArmadilha = '$argon2id$v=19$m=65536,t=4,p=1$R0YzT0hMbzFWdXhMR2tnYQ$GJNltT2Bl+VHQ3/9bILclsh8rbiBkOS39WzSTmfEsFU';
     }
 
     $senhaValida = $usuario
