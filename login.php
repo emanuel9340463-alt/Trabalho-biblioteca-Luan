@@ -31,6 +31,8 @@ $erro = isset($_GET['erro']) && is_string($_GET['erro']) ? $_GET['erro'] : '';
             <div class="alert alert-danger" role="alert">
                 <?php if ($erro === 'sessao'): ?>
                     O formulário expirou. Recarregue a página e tente novamente.
+                <?php elseif ($erro === 'limite'): ?>
+                    Houve muitas tentativas. Aguarde antes de tentar novamente.
                 <?php else: ?>
                     Não foi possível autenticar. Aguarde alguns instantes e tente novamente.
                 <?php endif; ?>

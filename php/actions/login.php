@@ -9,10 +9,12 @@ function falharLogin($motivo = 'credenciais')
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    error_log('Login rejeitado: método HTTP inválido.');
     falharLogin('sessao');
 }
 
 if (!validarTokenCsrf($_POST['csrf_token'] ?? null)) {
+    error_log('Login rejeitado: token CSRF inválido.');
     falharLogin('sessao');
 }
 
@@ -24,16 +26,26 @@ require_once __DIR__ . '/../../config/conexao.php';
 
 try {
     if (loginTemBloqueio($conn, $chavesTentativas)) {
-        falharLogin();
+        error_log('Login rejeitado: limite temporário de tentativas ativo.');
+        falharLogin('limite');
     }
 
-    if (
-        $email === '' ||
-        strlen($email) > 255 ||
-        filter_var($email, FILTER_VALIDATE_EMAIL) === false ||
-        $senha === '' ||
-        strlen($senha) > 4096
-    ) {
+    $problemasFormulario = [];
+    if ($email === '') {
+        $problemasFormulario[] = 'email_ausente';
+    } elseif (strlen($email) > 255) {
+        $problemasFormulario[] = 'email_muito_longo';
+    } elseif (filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+        $problemasFormulario[] = 'email_invalido';
+    }
+    if ($senha === '') {
+        $problemasFormulario[] = 'senha_ausente';
+    } elseif (strlen($senha) > 4096) {
+        $problemasFormulario[] = 'senha_muito_longa';
+    }
+
+    if ($problemasFormulario) {
+        error_log('Login rejeitado: ' . implode(', ', $problemasFormulario) . '.');
         registrarFalhaLogin($conn, $chavesTentativas);
         falharLogin();
     }
@@ -54,7 +66,14 @@ try {
         ? password_verify($senha, $usuario['senha'])
         : password_verify($senha, $hashArmadilha);
 
-    if (!$usuario || !$senhaValida) {
+    if (!$usuario) {
+        error_log('Login rejeitado: conta não encontrada.');
+        registrarFalhaLogin($conn, $chavesTentativas);
+        falharLogin();
+    }
+
+    if (!$senhaValida) {
+        error_log('Login rejeitado: verificação da senha não correspondeu.');
         registrarFalhaLogin($conn, $chavesTentativas);
         falharLogin();
     }
