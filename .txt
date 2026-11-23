@@ -25,3 +25,5 @@ git switch -c feature/leitor-codigo-barras
 
 Rodar programa no Ngork (remote)
 ngrok http 80
+
+$argon2id$v=19$m=65536,t=4,p=1$NUJqQzRUdXRZdWRMdUFhNg$O8/ZTeOLY8oJTbEtdRpamw2anI15t00iCCw8t/hryo0

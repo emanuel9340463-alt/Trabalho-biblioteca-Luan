@@ -76,6 +76,18 @@ VALUES ('admin@exemplo.local', 'COLE_AQUI_O_HASH_GERADO');
 
 Não salve a senha em texto puro nem publique o hash. Para adicionar outros administradores, repita o procedimento com um e-mail distinto.
 
+Para conferir localmente se uma senha corresponde ao hash atualmente salvo pela aplicação, sem enviar a senha ao navegador ou registrá-la em logs, use o PowerShell:
+
+```powershell
+$senhaSegura = Read-Host "Senha a conferir" -AsSecureString
+$credencial = New-Object System.Management.Automation.PSCredential("admin", $senhaSegura)
+$senha = $credencial.GetNetworkCredential().Password
+$senha | & C:\xampp\php\php.exe C:\xampp\htdocs\Trabalho-biblioteca-Luan\database\verificar_senha_admin.php admin@gmail.com
+Remove-Variable senha, senhaSegura, credencial
+```
+
+O verificador é somente CLI, consulta o banco configurado em `config/conexao.php` e informa apenas se a senha corresponde. Nunca cole a senha no chat.
+
 ### Atualização de instalações existentes
 
 O login aceita somente senhas com hash. Se a tabela `usuarios` ainda tiver senhas em texto puro, faça backup do banco, atualize o projeto e execute o SQL atualizado (ele cria a tabela de limitação de tentativas sem apagar as demais tabelas ou registros). Antes de liberar o acesso à aplicação atualizada, execute no PowerShell:

@@ -2,14 +2,18 @@
 require_once __DIR__ . '/../../config/seguranca.php';
 iniciarSessaoSegura();
 
-function falharLogin()
+function falharLogin($motivo = 'credenciais')
 {
-    header('Location: ../../login.php?erro=credenciais');
+    header('Location: ../../login.php?erro=' . rawurlencode($motivo));
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !validarTokenCsrf($_POST['csrf_token'] ?? null)) {
-    falharLogin();
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    falharLogin('sessao');
+}
+
+if (!validarTokenCsrf($_POST['csrf_token'] ?? null)) {
+    falharLogin('sessao');
 }
 
 $email = isset($_POST['email']) && is_string($_POST['email']) ? trim($_POST['email']) : '';

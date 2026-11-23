@@ -29,7 +29,11 @@ $erro = isset($_GET['erro']) && is_string($_GET['erro']) ? $_GET['erro'] : '';
         </div>
         <?php if ($erro !== ''): ?>
             <div class="alert alert-danger" role="alert">
-                Não foi possível autenticar. Aguarde alguns instantes e tente novamente.
+                <?php if ($erro === 'sessao'): ?>
+                    O formulário expirou. Recarregue a página e tente novamente.
+                <?php else: ?>
+                    Não foi possível autenticar. Aguarde alguns instantes e tente novamente.
+                <?php endif; ?>
             </div>
         <?php endif; ?>
         <form action="php/actions/login.php" method="post">
