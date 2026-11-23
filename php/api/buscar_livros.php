@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../../config/seguranca.php';
+exigirAutenticacao(true);
 require_once __DIR__ . '/../../config/conexao.php';
 
 // Responde em JSON apenas com livros que possuem exemplares disponíveis.
@@ -10,7 +12,14 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     exit;
 }
 
-$termo = isset($_GET['q']) && is_string($_GET['q']) ? trim($_GET['q']) : '';
+$tipoTermoValido = !isset($_GET['q']) || is_string($_GET['q']);
+$termo = $tipoTermoValido ? (isset($_GET['q']) ? trim($_GET['q']) : '') : '';
+
+if (!$tipoTermoValido || !textoTamanhoValido($termo, 0, 100)) {
+    http_response_code(400);
+    echo json_encode(['erro' => 'O termo de pesquisa é inválido ou muito longo.'], JSON_UNESCAPED_UNICODE);
+    exit;
+}
 
 if ($termo === '') {
     echo json_encode(['livros' => []], JSON_UNESCAPED_UNICODE);

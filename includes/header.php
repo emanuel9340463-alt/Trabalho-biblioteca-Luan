@@ -1,4 +1,8 @@
 <?php
+require_once __DIR__ . '/../config/seguranca.php';
+exigirAutenticacao();
+$tokenCabecalho = tokenCsrf();
+
 $pageTitle = $pageTitle ?? 'Biblioteca';
 $pageDescription = $pageDescription ?? '';
 $activePage = $activePage ?? '';
@@ -117,6 +121,10 @@ $navigationItems = [
             <div class="topbar-meta">
                 <span class="system-status"><span aria-hidden="true"></span> Sistema ativo</span>
                 <time datetime="<?= date('Y-m-d') ?>"><?= date('d/m/Y') ?></time>
+                <form action="php/actions/logout.php" method="post" class="m-0">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($tokenCabecalho, ENT_QUOTES, 'UTF-8') ?>">
+                    <button class="btn btn-sm btn-outline-primary" type="submit">Sair</button>
+                </form>
             </div>
         </header>
 

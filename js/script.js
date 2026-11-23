@@ -604,6 +604,7 @@ async function salvarCapaPendente() {
     isbn: livroForm.dataset.capaIsbn || "",
     titulo: livroForm.dataset.capaTitulo || "",
     autor: livroForm.dataset.capaAutor || "",
+    csrf_token: livroForm.elements.csrf_token.value,
   });
 
   try {

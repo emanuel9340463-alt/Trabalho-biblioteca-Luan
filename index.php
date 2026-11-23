@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/config/seguranca.php';
+exigirAutenticacao();
 require_once 'config/conexao.php';
 
 // Centraliza consultas do painel e transforma falhas SQL em uma exceção clara.
@@ -7,12 +9,21 @@ function executarConsultaDashboard($conn, $sql)
     $resultado = $conn->query($sql);
 
     if ($resultado === false) {
-        throw new RuntimeException('Não foi possível carregar o painel: ' . $conn->error);
+        error_log('Falha ao carregar o painel da biblioteca: ' . $conn->error);
+        throw new RuntimeException('Não foi possível carregar o painel.');
     }
 
     return $resultado;
 }
 
+$resumoLivros = ['titulos' => 0, 'exemplares' => 0, 'disponiveis' => 0];
+$totalAlunos = 0;
+$resumoEmprestimos = ['ativos' => 0, 'atrasados' => 0];
+$livrosRecentes = [];
+$emprestimosRecentes = [];
+$erroPainel = '';
+
+try {
 $resumoLivros = executarConsultaDashboard(
     $conn,
     "SELECT
@@ -66,6 +77,10 @@ $emprestimosRecentes = executarConsultaDashboard(
      ORDER BY emprestimos.data_devolucao ASC
      LIMIT 5"
 )->fetch_all(MYSQLI_ASSOC);
+} catch (Throwable $erro) {
+    error_log('Falha ao montar o painel da biblioteca: ' . $erro->getMessage());
+    $erroPainel = 'Não foi possível carregar os dados do painel. Tente novamente mais tarde.';
+}
 
 // Fecha a conexão assim que todas as consultas necessárias foram concluídas.
 $conn->close();
@@ -75,6 +90,9 @@ $pageDescription = 'Acompanhe o acervo, os alunos e os empréstimos em um só lu
 $activePage = 'dashboard';
 require 'includes/header.php';
 ?>
+<?php if ($erroPainel !== ''): ?>
+    <div class="alert alert-danger" role="alert"><?= htmlspecialchars($erroPainel, ENT_QUOTES, 'UTF-8') ?></div>
+<?php endif; ?>
 <section class="row g-3" aria-label="Resumo da biblioteca">
     <div class="col-12 col-sm-6 col-xl-3">
         <article class="surface-card stat-card">

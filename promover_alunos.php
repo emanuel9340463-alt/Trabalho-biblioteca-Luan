@@ -1,10 +1,7 @@
 <?php
-session_start();
+require_once __DIR__ . '/config/seguranca.php';
+exigirAutenticacao();
 require_once __DIR__ . '/config/conexao.php';
-
-if (!isset($_SESSION['csrf_token']) || !is_string($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
 
 $turmas = [];
 $alunos = [];
@@ -52,6 +49,7 @@ function escaparPromocaoAluno($valor)
 $mensagensResultado = [
     'sucesso' => ['success', 'A promoção dos alunos selecionados foi concluída.'],
     'dados_invalidos' => ['danger', 'Selecione uma turma, alunos e uma turma de destino válidos.'],
+    'csrf_invalido' => ['warning', 'Sua sessão expirou. Atualize a página e tente novamente.'],
     'mesma_turma' => ['warning', 'A turma de origem e a turma de destino precisam ser diferentes.'],
     'selecao_desatualizada' => ['warning', 'A lista de alunos mudou. Atualize a turma de origem e tente novamente.'],
     'erro' => ['danger', 'Não foi possível concluir a promoção. Tente novamente.'],
@@ -124,7 +122,7 @@ require 'includes/header.php';
                 data-promotion-form
                 data-turma-origem="<?= escaparPromocaoAluno($turmaOrigem) ?>"
             >
-                <input type="hidden" name="csrf_token" value="<?= escaparPromocaoAluno($_SESSION['csrf_token']) ?>">
+                <input type="hidden" name="csrf_token" value="<?= escaparPromocaoAluno(tokenCsrf()) ?>">
                 <input type="hidden" name="turma_origem" value="<?= escaparPromocaoAluno($turmaOrigem) ?>">
 
                 <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">

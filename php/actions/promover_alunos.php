@@ -1,5 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/../../config/seguranca.php';
+exigirAutenticacao();
 require_once __DIR__ . '/../../config/conexao.php';
 
 function redirecionarPromocaoAluno($resultado, $quantidade = null)
@@ -17,14 +18,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     redirecionarPromocaoAluno('dados_invalidos');
 }
 
-$tokenEnviado = isset($_POST['csrf_token']) && is_string($_POST['csrf_token'])
-    ? $_POST['csrf_token']
-    : '';
-$tokenSessao = isset($_SESSION['csrf_token']) && is_string($_SESSION['csrf_token'])
-    ? $_SESSION['csrf_token']
-    : '';
-if ($tokenSessao === '' || !hash_equals($tokenSessao, $tokenEnviado)) {
-    redirecionarPromocaoAluno('dados_invalidos');
+if (!validarTokenCsrf($_POST['csrf_token'] ?? null)) {
+    redirecionarPromocaoAluno('csrf_invalido');
 }
 
 $turmaOrigem = isset($_POST['turma_origem']) && is_string($_POST['turma_origem'])
@@ -39,7 +34,8 @@ if (
     preg_match('/\A.{1,5}\z/u', $turmaOrigem) !== 1 ||
     preg_match('/\A.{1,5}\z/u', $turmaDestino) !== 1 ||
     !is_array($alunosEnviados) ||
-    $alunosEnviados === []
+    $alunosEnviados === [] ||
+    count($alunosEnviados) > 500
 ) {
     redirecionarPromocaoAluno('dados_invalidos');
 }
@@ -55,7 +51,7 @@ foreach ($alunosEnviados as $idEnviado) {
     }
 
     $idAluno = filter_var($idEnviado, FILTER_VALIDATE_INT);
-    if ($idAluno === false || $idAluno < 1 || isset($idsAlunos[$idAluno])) {
+    if ($idAluno === false || $idAluno < 1 || $idAluno > 2147483647 || isset($idsAlunos[$idAluno])) {
         redirecionarPromocaoAluno('dados_invalidos');
     }
 

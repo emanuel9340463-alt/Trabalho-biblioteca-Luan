@@ -40,7 +40,8 @@ O leitor de câmera funciona em `localhost` ou em uma conexão HTTPS.
 3. Acesse `http://localhost/phpmyadmin`.
 4. Importe o arquivo `database/banco.sql`.
 5. Confirme que o banco `biblioteca_luan` foi criado.
-6. Abra `http://localhost/Trabalho-biblioteca-Luan/`.
+6. Crie o primeiro usuário administrativo conforme **Configuração de acesso**.
+7. Abra `http://localhost/Trabalho-biblioteca-Luan/login.php`.
 
 O banco já vem configurado no projeto com o usuário padrão do XAMPP:
 
@@ -53,20 +54,55 @@ $banco = "biblioteca_luan";
 
 Se o MySQL tiver outra senha ou usuário, altere os valores em `config/conexao.php`.
 
+## Configuração de acesso
+
+Todas as páginas de gestão e APIs internas exigem uma sessão autenticada. Não existe cadastro público de administradores. Para criar o primeiro usuário, gere um hash localmente em um PowerShell (a senha é lida sem exibi-la):
+
+```powershell
+$senhaSegura = Read-Host "Senha do administrador" -AsSecureString
+$credencial = New-Object System.Management.Automation.PSCredential("admin", $senhaSegura)
+$senha = $credencial.GetNetworkCredential().Password
+$hash = $senha | & C:\xampp\php\php.exe C:\xampp\htdocs\Trabalho-biblioteca-Luan\database\gerar_hash_senha.php
+Remove-Variable senha, senhaSegura, credencial
+$hash
+```
+
+Digite a senha no terminal e copie somente o hash gerado. No phpMyAdmin, execute a consulta abaixo substituindo o e-mail e o hash:
+
+```sql
+INSERT INTO biblioteca_luan.usuarios (email, senha)
+VALUES ('admin@exemplo.local', 'COLE_AQUI_O_HASH_GERADO');
+```
+
+Não salve a senha em texto puro nem publique o hash. Para adicionar outros administradores, repita o procedimento com um e-mail distinto.
+
+### Atualização de instalações existentes
+
+O login aceita somente senhas com hash. Se a tabela `usuarios` ainda tiver senhas em texto puro, faça backup do banco, atualize o projeto e execute o SQL atualizado (ele cria a tabela de limitação de tentativas sem apagar as demais tabelas ou registros). Antes de liberar o acesso à aplicação atualizada, execute no PowerShell:
+
+```powershell
+& C:\xampp\php\php.exe C:\xampp\htdocs\Trabalho-biblioteca-Luan\database\migrar_senhas_legadas.php
+```
+
+O utilitário acessa o banco pela configuração existente, troca somente valores que não são hashes reconhecidos por hashes `password_hash()` e preserva os IDs, e-mails e as senhas que os usuários já conhecem. Usa Argon2id quando disponível no PHP local; caso contrário, usa `PASSWORD_DEFAULT`. É idempotente: executar novamente não re-hashará as senhas já migradas. Só pode ser executado por CLI, informa a quantidade migrada e nunca imprime nem registra senhas. Faça um backup antes: após a conversão, os valores originais não podem ser recuperados. Use a mesma versão de PHP configurada para a aplicação; usuários com senha antiga poderão entrar com a senha de sempre assim que a migração terminar.
+
+Não mantenha uma cópia da tabela ou do arquivo exportado em local público. Se a migração falhar, ela faz rollback; corrija a conexão ou o esquema e execute novamente antes de liberar o login.
+
 ## Estrutura do projeto
 
 ```text
 .
-├── config/                 Configuração da conexão com o banco
+├── config/                 Conexão e funções de segurança compartilhadas
 ├── css/                    Folhas de estilo das páginas
-├── database/               Script de criação e atualização do banco
+├── database/               SQL e utilitários CLI para hashes e migração de senhas
 ├── img/                    Imagens e capas dos livros
 ├── includes/               Cabeçalho e rodapé compartilhados
 ├── js/                     Comportamentos JavaScript das páginas
 ├── php/
-│   ├── actions/            Processamento de formulários e operações
+│   ├── actions/            Login, logout e operações de escrita
 │   └── api/                Consultas em formato JSON
 ├── index.php               Painel principal
+├── login.php               Entrada da área administrativa
 ├── cadastroaluno.php       Cadastro de alunos
 ├── cadastrolivro.php       Cadastro de livros
 ├── emprestimos.php         Empréstimos e devoluções
@@ -87,6 +123,8 @@ As principais tabelas são:
 
 Um empréstimo ativo é aquele cujo campo `data_devolucao_real` está vazio. A devolução é registrada preenchendo esse campo com a data atual.
 
+O script `database/banco.sql` pode ser executado novamente: as tabelas já existentes são preservadas, as colunas de migração só são adicionadas quando faltam, e não há empréstimos de exemplo com IDs fixos. Faça backup do banco antes de executar qualquer atualização em uma instalação com dados importantes.
+
 ## Como usar
 
 1. Cadastre pelo menos um livro e um aluno.
@@ -100,4 +138,10 @@ Um empréstimo ativo é aquele cujo campo `data_devolucao_real` está vazio. A d
 - Códigos e dados são escapados antes de serem exibidos em HTML.
 - Consultas com dados informados pelo usuário usam prepared statements.
 - Empréstimos usam transação e bloqueio do livro para evitar disponibilidade incorreta.
+- A data do empréstimo pode ser passada para registrar uma retirada real lançada com atraso, mas não pode ser futura. A devolução prevista deve ser igual ou posterior à data do empréstimo; pode ser passada para registrar um empréstimo histórico já vencido ou futura para um empréstimo corrente.
+- Tentativas inválidas de login são contadas por hashes do e-mail normalizado e do endereço IP, nunca armazenando esses valores em claro. Da 5ª à 7ª falha há bloqueio de 30 segundos, da 8ª à 11ª de 2 minutos e, a partir da 12ª, de 15 minutos. Uma nova tentativa após uma hora reinicia o contador; registros sem atividade por 24 horas são removidos na próxima falha.
+- Sessões usam cookies `HttpOnly`, `SameSite=Lax` e `Secure` quando o site está em HTTPS; as operações POST verificam tokens CSRF.
+- Configure o Apache/PHP para manter `display_errors=Off` em produção. Os detalhes técnicos são enviados ao log de erros do servidor.
+- A tabela `usuarios` não tem perfis: toda conta cadastrada recebe acesso administrativo. Cadastre somente pessoas autorizadas.
+- Fora do XAMPP local, use HTTPS e um usuário MySQL próprio com senha e permissões mínimas, em vez de `root` sem senha.
 - Os arquivos dentro de `node_modules/` são dependências locais gerenciadas pelo npm e não fazem parte da lógica da aplicação.

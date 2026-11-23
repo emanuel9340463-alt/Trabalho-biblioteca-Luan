@@ -1,12 +1,20 @@
 <?php
+require_once __DIR__ . '/config/seguranca.php';
+exigirAutenticacao();
 require_once 'config/conexao.php';
 
 // Verificar se há alunos cadastrados sem carregar toda a lista na página
-$sqlAlunos = "SELECT COUNT(*) AS total FROM alunos";
-$resultadoAlunos = $conn->query($sqlAlunos);
-$totalAlunos = (int) $resultadoAlunos->fetch_assoc()['total'];
-// Buscar empréstimos que ainda não foram devolvidos
-$sqlEmprestimos = "SELECT
+$totalAlunos = 0;
+$resultadoEmprestimos = null;
+$livrosDisponiveis = false;
+$erroCarregamento = '';
+
+try {
+    $sqlAlunos = "SELECT COUNT(*) AS total FROM alunos";
+    $resultadoAlunos = $conn->query($sqlAlunos);
+    $totalAlunos = (int) $resultadoAlunos->fetch_assoc()['total'];
+    // Buscar empréstimos que ainda não foram devolvidos
+    $sqlEmprestimos = "SELECT
                     emprestimos.id,
                     alunos.nome AS aluno,
                     alunos.turma,
@@ -37,8 +45,12 @@ $sqlLivros = "SELECT COUNT(*) AS total
                   WHERE emprestimos.livro_id = livros.id
                     AND emprestimos.data_devolucao_real IS NULL
               )";
-$resultadoLivros = $conn->query($sqlLivros);
-$livrosDisponiveis = (int) $resultadoLivros->fetch_assoc()['total'] > 0;
+    $resultadoLivros = $conn->query($sqlLivros);
+    $livrosDisponiveis = (int) $resultadoLivros->fetch_assoc()['total'] > 0;
+} catch (Throwable $erro) {
+    error_log('Falha ao carregar página de empréstimos: ' . $erro->getMessage());
+    $erroCarregamento = 'Não foi possível carregar os empréstimos. Tente novamente mais tarde.';
+}
 $cadastrosCompletos = $totalAlunos > 0 && $livrosDisponiveis;
 
 // Define o título e a identificação da página usada pelo cabeçalho compartilhado.
@@ -48,11 +60,15 @@ $activePage = 'emprestimos';
 ?>
 <?php require 'includes/header.php'; ?>
 <div class="container-fluid p-0">
+    <?php if ($erroCarregamento !== ''): ?>
+        <div class="alert alert-danger" role="alert"><?= htmlspecialchars($erroCarregamento, ENT_QUOTES, 'UTF-8') ?></div>
+    <?php endif; ?>
     <?php
     $mensagensResultado = [
         'sucesso' => ['success', 'Empréstimo registrado com sucesso.'],
         'devolucao_sucesso' => ['success', 'Devolução registrada com sucesso.'],
         'dados_invalidos' => ['danger', 'Os dados enviados são inválidos. Confira e tente novamente.'],
+        'csrf_invalido' => ['warning', 'Sua sessão expirou. Atualize a página e tente novamente.'],
         'datas_invalidas' => ['danger', 'Confira as datas informadas para o empréstimo.'],
         'erro' => ['danger', 'Não foi possível concluir a operação. Verifique os dados e tente novamente.'],
     ];
@@ -83,6 +99,7 @@ $activePage = 'emprestimos';
         <?php endif; ?>
 
         <form action="php/actions/registrar_emprestimo.php" method="post">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(tokenCsrf(), ENT_QUOTES, 'UTF-8') ?>">
 
             <div class="mb-3">
                 <label for="busca_aluno" class="form-label">Pesquisar aluno</label>
@@ -131,6 +148,7 @@ $activePage = 'emprestimos';
                         id="data_emprestimo"
                         class="form-control"
                         value="<?= date('Y-m-d') ?>"
+                        max="<?= date('Y-m-d') ?>"
                         required
                     >
                 </div>
@@ -164,7 +182,9 @@ $activePage = 'emprestimos';
 
         <h2 class="h4 mb-3">Empréstimos ativos</h2>
 
-        <?php if ($resultadoEmprestimos->num_rows > 0): ?>
+        <?php if ($erroCarregamento !== ''): ?>
+            <p class="text-secondary mb-0">A lista de empréstimos está temporariamente indisponível.</p>
+        <?php elseif ($resultadoEmprestimos && $resultadoEmprestimos->num_rows > 0): ?>
 
             <div class="table-responsive">
 
@@ -217,6 +237,7 @@ $activePage = 'emprestimos';
 
                                 <td>
                                     <form action="php/actions/registrar_devolucao.php" method="post">
+                                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(tokenCsrf(), ENT_QUOTES, 'UTF-8') ?>">
                                         <input
                                             type="hidden"
                                             name="emprestimo_id"

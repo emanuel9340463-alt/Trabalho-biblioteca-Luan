@@ -1,12 +1,17 @@
 <?php
+require_once __DIR__ . '/config/seguranca.php';
+exigirAutenticacao();
 require_once __DIR__ . '/config/conexao.php';
 
-$termo = isset($_GET['q']) && is_string($_GET['q']) ? trim($_GET['q']) : '';
+$tipoTermoValido = !isset($_GET['q']) || is_string($_GET['q']);
+$termo = $tipoTermoValido ? (isset($_GET['q']) ? trim($_GET['q']) : '') : '';
 $alunos = [];
-$erro = '';
+$erro = $tipoTermoValido ? '' : 'O termo de pesquisa é inválido.';
 
 try {
-    if ($termo === '') {
+    if (!textoTamanhoValido($termo, 0, 100)) {
+        $erro = 'O termo de pesquisa deve ter no máximo 100 caracteres.';
+    } elseif ($termo === '') {
         $stmt = $conn->prepare(
             'SELECT id, nome, data_nascimento, turma FROM alunos ORDER BY turma, nome'
         );
@@ -24,16 +29,18 @@ try {
         }
     }
 
-    if (!$stmt) {
-        throw new mysqli_sql_exception($conn->error);
-    }
+    if ($erro === '') {
+        if (!$stmt) {
+            throw new mysqli_sql_exception($conn->error);
+        }
 
-    if (!$stmt->execute()) {
-        throw new mysqli_sql_exception($stmt->error);
-    }
+        if (!$stmt->execute()) {
+            throw new mysqli_sql_exception($stmt->error);
+        }
 
-    $alunos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    $stmt->close();
+        $alunos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+    }
 } catch (mysqli_sql_exception $exception) {
     error_log('Erro ao consultar alunos: ' . $exception->getMessage());
     $erro = 'Não foi possível carregar os alunos. Tente novamente mais tarde.';

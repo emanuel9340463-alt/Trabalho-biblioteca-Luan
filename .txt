@@ -11,10 +11,11 @@ Resolver:
 **Emprestimo quebrou - Resolvido
 *Fazer com que os livros vao aparecendo quando se digita em pesquisa.php
 *Alinhar inputs de cadastrolivro.php e index.php
+*corrigir identação do código
 
 Adicionar:
 1º -Opção de promover os alunos de série - Feito
-2º -Comentários explicando o código 
+2º -Comentários explicando o código - Feito
 3º -Opção de cadastrar os livros escaneando o código com leitor de barras - Feito
 4º -Painel de Admin para programador
 

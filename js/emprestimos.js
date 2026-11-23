@@ -11,6 +11,8 @@
   const studentResultsList = document.getElementById("resultados_alunos");
   const studentSearchStatus = document.getElementById("status_busca_aluno");
   const selectedStudent = document.getElementById("aluno_selecionado");
+  const loanDateInput = document.getElementById("data_emprestimo");
+  const dueDateInput = document.getElementById("data_devolucao");
 
   if (
     !searchInput ||
@@ -22,6 +24,17 @@
   ) {
     return;
   }
+
+  const updateDueDateMinimum = () => {
+    if (!loanDateInput || !dueDateInput) return;
+    dueDateInput.min = loanDateInput.value;
+    if (dueDateInput.value && dueDateInput.value < loanDateInput.value) {
+      dueDateInput.value = loanDateInput.value;
+    }
+  };
+
+  loanDateInput?.addEventListener("change", updateDueDateMinimum);
+  updateDueDateMinimum();
 
   let debounceTimer;
   let activeRequest;

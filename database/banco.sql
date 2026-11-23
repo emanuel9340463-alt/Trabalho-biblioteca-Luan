@@ -44,6 +44,15 @@ CREATE TABLE IF NOT EXISTS usuarios (
     senha VARCHAR(255) NOT NULL
 );
 
+-- Guarda somente identificadores hash para limitar tentativas de login.
+CREATE TABLE IF NOT EXISTS login_tentativas (
+    chave_hash CHAR(64) CHARACTER SET ascii COLLATE ascii_bin PRIMARY KEY,
+    falhas TINYINT UNSIGNED NOT NULL DEFAULT 0,
+    ultima_tentativa DATETIME NOT NULL,
+    bloqueado_ate DATETIME NULL,
+    INDEX idx_login_tentativas_data (ultima_tentativa)
+);
+
 -- Cada linha representa uma retirada registrada no sistema.
 CREATE TABLE IF NOT EXISTS emprestimos (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -55,13 +64,19 @@ CREATE TABLE IF NOT EXISTS emprestimos (
     FOREIGN KEY (livro_id) REFERENCES livros(id)
 );
 
-INSERT INTO emprestimos (aluno_id, livro_id, data_emprestimo, data_devolucao)
-VALUES(1, 5,  CURDATE(), DATE_ADD(CURDATE(), INTERVAL 7 DAY));
-
-ALTER TABLE emprestimos
-ADD COLUMN data_devolucao_real DATE NULL;
-
--- Consultas finais úteis para conferir os registros inseridos.
-SELECT * FROM livros;
-SELECT * FROM alunos;
-SELECT * FROM emprestimos;
+-- Adiciona a data real de devolução em bancos anteriores sem remover registros.
+SET @coluna_devolucao_real_existe = (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'emprestimos'
+      AND column_name = 'data_devolucao_real'
+);
+SET @migracao_devolucao_real = IF(
+    @coluna_devolucao_real_existe = 0,
+    'ALTER TABLE emprestimos ADD COLUMN data_devolucao_real DATE NULL',
+    'SELECT 1'
+);
+PREPARE stmt_migracao_devolucao_real FROM @migracao_devolucao_real;
+EXECUTE stmt_migracao_devolucao_real;
+DEALLOCATE PREPARE stmt_migracao_devolucao_real;

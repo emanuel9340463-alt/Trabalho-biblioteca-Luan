@@ -1,53 +1,69 @@
 <?php
 // Este bloco processa o formulário por POST e devolve texto simples ao JavaScript.
+require_once __DIR__ . '/config/seguranca.php';
+exigirAutenticacao();
 require_once 'config/conexao.php';
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Captura dos dados enviados pelo formulário
-    $nome            = isset($_POST['nome']) ? trim($_POST['nome']) : '';
-    $data_nascimento = isset($_POST['data_nascimento']) ? trim($_POST['data_nascimento']) : (isset($_POST['nascimento']) ? trim($_POST['nascimento']) : '');
-    $turma           = isset($_POST['turma']) ? trim($_POST['turma']) : '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!validarTokenCsrf($_POST['csrf_token'] ?? null)) {
+        http_response_code(403);
+        echo 'Sua sessão expirou. Atualize a página e tente novamente.';
+        exit;
+    }
 
-    // Validação dos campos obrigatórios
-    if (!empty($nome) && !empty($data_nascimento) && !empty($turma)) {
-        
-        // Verifica se o aluno já está cadastrado
-        $sqlVerifica = "SELECT id FROM alunos WHERE nome = ? AND data_nascimento = ?";
-        $stmtVerifica = $conn->prepare($sqlVerifica);
+    // Captura os dados sem aceitar arrays ou outros tipos inesperados.
+    $nome = isset($_POST['nome']) && is_string($_POST['nome']) ? trim($_POST['nome']) : '';
+    $data_nascimento = isset($_POST['data_nascimento']) && is_string($_POST['data_nascimento'])
+        ? trim($_POST['data_nascimento'])
+        : (isset($_POST['nascimento']) && is_string($_POST['nascimento']) ? trim($_POST['nascimento']) : '');
+    $turma = isset($_POST['turma']) && is_string($_POST['turma']) ? trim($_POST['turma']) : '';
 
+    if (
+        !textoTamanhoValido($nome, 1, 100) ||
+        !dataIsoValida($data_nascimento) ||
+        $data_nascimento > date('Y-m-d') ||
+        !textoTamanhoValido($turma, 1, 5)
+    ) {
+        echo 'Confira o nome, a data de nascimento e a turma informados.';
+        exit;
+    }
+
+    try {
+        $stmtVerifica = $conn->prepare(
+            'SELECT id FROM alunos WHERE nome = ? AND data_nascimento = ?'
+        );
         if (!$stmtVerifica) {
-            echo "Erro na consulta de verificação: " . $conn->error;
-            exit;
+            throw new mysqli_sql_exception($conn->error);
         }
 
-        $stmtVerifica->bind_param("ss", $nome, $data_nascimento);
-        $stmtVerifica->execute();
-        $resultado = $stmtVerifica->get_result();
+        $stmtVerifica->bind_param('ss', $nome, $data_nascimento);
+        if (!$stmtVerifica->execute()) {
+            throw new mysqli_sql_exception($stmtVerifica->error);
+        }
+        $jaCadastrado = $stmtVerifica->get_result()->num_rows > 0;
+        $stmtVerifica->close();
 
-        if ($resultado->num_rows > 0) {
-            echo "Este aluno já está cadastrado.";
+        if ($jaCadastrado) {
+            echo 'Este aluno já está cadastrado.';
         } else {
-            // Insere o novo aluno na tabela 'alunos'
-            $sql = "INSERT INTO alunos (nome, data_nascimento, turma) VALUES (?, ?, ?)";
-            $stmt = $conn->prepare($sql);
-
+            $stmt = $conn->prepare(
+                'INSERT INTO alunos (nome, data_nascimento, turma) VALUES (?, ?, ?)'
+            );
             if (!$stmt) {
-                echo "Erro na consulta de inserção: " . $conn->error;
-                exit;
+                throw new mysqli_sql_exception($conn->error);
             }
 
-            $stmt->bind_param("sss", $nome, $data_nascimento, $turma);
-
-            if ($stmt->execute()) {
-                echo "sucesso";
-            } else {
-                echo "Erro ao cadastrar: " . $stmt->error;
+            $stmt->bind_param('sss', $nome, $data_nascimento, $turma);
+            if (!$stmt->execute()) {
+                throw new mysqli_sql_exception($stmt->error);
             }
             $stmt->close();
+            echo 'sucesso';
         }
-        $stmtVerifica->close();
-    } else {
-        echo "Por favor, preencha todos os campos obrigatórios.";
+    } catch (Throwable $erro) {
+        error_log('Falha ao processar cadastro de aluno: ' . $erro->getMessage());
+        http_response_code(500);
+        echo 'Não foi possível cadastrar o aluno. Tente novamente.';
     }
 
     $conn->close();
@@ -68,6 +84,7 @@ require 'includes/header.php';
                 <p class="surface-subtitle">Preencha as informações para registrar um novo leitor.</p>
             </div>
             <form id="alunoForm">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(tokenCsrf(), ENT_QUOTES, 'UTF-8') ?>">
                 <div class="mb-3">
                     <label for="nome" class="form-label">Nome completo</label>
                     <input type="text" class="form-control" id="nome" name="nome" placeholder="Ex.: Maria da Silva" autocomplete="name" maxlength="100" required>

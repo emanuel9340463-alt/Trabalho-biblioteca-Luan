@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/config/seguranca.php';
+exigirAutenticacao();
 require_once 'config/conexao.php';
 
 //Variáveis DB
@@ -621,14 +623,21 @@ if (
         exit;
     }
 
-    $isbn = isset($_POST['isbn']) && is_string($_POST['isbn'])
-        ? normalizarIsbn($_POST['isbn']) : '';
+    if (!validarTokenCsrf($_POST['csrf_token'] ?? null)) {
+        http_response_code(403);
+        echo json_encode(['erro' => 'Sua sessão expirou. Atualize a página e tente novamente.'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    $isbnInformado = isset($_POST['isbn']) && is_string($_POST['isbn'])
+        ? $_POST['isbn'] : '';
+    $isbn = normalizarIsbn($isbnInformado);
     $titulo = isset($_POST['titulo']) && is_string($_POST['titulo'])
         ? trim($_POST['titulo']) : '';
     $autor = isset($_POST['autor']) && is_string($_POST['autor'])
         ? trim($_POST['autor']) : '';
 
-    if (!in_array(strlen($isbn), [10, 13], true) || $titulo === '') {
+    if (!isbnValido($isbnInformado) || !textoTamanhoValido($titulo, 1, 200) || !textoTamanhoValido($autor, 0, 100)) {
         http_response_code(400);
         echo json_encode(['erro' => 'ISBN ou título inválido.'], JSON_UNESCAPED_UNICODE);
         exit;
@@ -649,7 +658,12 @@ if (
 // 12. PROCESSAMENTO DO FORMULÁRIO
 // =====================================================
 
+try {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!validarTokenCsrf($_POST['csrf_token'] ?? null)) {
+        http_response_code(403);
+        $erro = 'Sua sessão expirou. Atualize a página e tente novamente.';
+    }
 
     $titulo = isset($_POST['titulo']) && is_string($_POST['titulo'])
         ? trim($_POST['titulo']) : '';
@@ -672,25 +686,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ? trim($_POST['quantidade']) : '';
 
     $quantidadeValidada = filter_var($quantidadeInformada, FILTER_VALIDATE_INT, [
-        'options' => ['min_range' => 1]
+        'options' => ['min_range' => 1, 'max_range' => 2147483647]
     ]);
 
     $quantidade = $quantidadeInformada;
 
     $capaEnviada = validarCapaEnviada($_FILES['capa'] ?? null);
 
-    if ($capaEnviada === false) {
+    if ($erro === '' && $capaEnviada === false) {
         $erro = 'A capa deve ser uma imagem JPG, PNG ou WEBP válida, com até 5 MB.';
-
-    } elseif (
-        $titulo === '' ||
-        !in_array(strlen($isbn), [10, 13], true) ||
-        $codigo_bibli === '' ||
+    } elseif ($erro === '' && (
+        !textoTamanhoValido($titulo, 1, 200) ||
+        !textoTamanhoValido($autor, 0, 100) ||
+        !textoTamanhoValido($categoria, 0, 50) ||
+        !isbnValido($isbnInformado) ||
+        !textoTamanhoValido($codigo_bibli, 1, 20) ||
         $quantidadeValidada === false
-    ) {
+    )) {
         $erro = 'Preencha os campos obrigatórios, informe um ISBN de 10 ou 13 caracteres e uma quantidade inteira maior que zero.';
 
-    } else {
+    } elseif ($erro === '') {
 
         $stmtVerifica = $conn->prepare(
             'SELECT id FROM livros WHERE titulo = ? LIMIT 1'
@@ -777,6 +792,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+} catch (Throwable $erroBanco) {
+    if ($erroBanco instanceof mysqli_sql_exception && (int) $erroBanco->getCode() === 1062) {
+        $erro = 'Já existe um livro cadastrado com este ISBN ou código da biblioteca.';
+    } else {
+        error_log('Falha ao processar cadastro de livro: ' . $erroBanco->getMessage());
+        http_response_code(500);
+        $erro = 'Não foi possível cadastrar o livro. Tente novamente.';
+    }
+}
 
 $conn->close();
 
@@ -806,6 +830,7 @@ require 'includes/header.php';
                 data-capa-titulo="<?= escapar($capaAutomaticaPendente['titulo'] ?? '') ?>"
                 data-capa-autor="<?= escapar($capaAutomaticaPendente['autor'] ?? '') ?>"
             >
+                <input type="hidden" name="csrf_token" value="<?= escapar(tokenCsrf()) ?>">
                 <div class="row">
                     <div class="col-12 col-lg-7 mb-3">
                         <div class="isbn-field-heading">
@@ -851,7 +876,7 @@ require 'includes/header.php';
                 <div class="row align-items-end">
                     <div class="col-12 col-md-6 mb-3">
                         <label class="form-label" for="quantidade">Quantidade de exemplares</label>
-                        <input type="number" name="quantidade" class="form-control" id="quantidade" min="1" step="1" value="<?= escapar($quantidade) ?>" required>
+                        <input type="number" name="quantidade" class="form-control" id="quantidade" min="1" max="2147483647" step="1" value="<?= escapar($quantidade) ?>" required>
                     </div>
                     <div class="col-12 col-md-6 mb-3">
                         <label class="form-label" for="capa">Capa manual (opcional)</label>

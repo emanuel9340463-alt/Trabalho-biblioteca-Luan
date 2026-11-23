@@ -1,19 +1,11 @@
 <?php
+require_once __DIR__ . '/config/seguranca.php';
+exigirAutenticacao();
 require_once 'config/conexao.php';
-
-// Valida o formato das datas recebidas nos filtros do histórico.
-function dataHistoricoValida($data)
-{
-    if (!is_string($data) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $data)) {
-        return false;
-    }
-
-    return checkdate((int) substr($data, 5, 2), (int) substr($data, 8, 2), (int) substr($data, 0, 4));
-}
 
 function formatarDataHistorico($data)
 {
-    return dataHistoricoValida($data) ? date('d/m/Y', strtotime($data)) : '—';
+    return dataIsoValida($data) ? date('d/m/Y', strtotime($data)) : '—';
 }
 
 $dataInicio = isset($_GET['data_inicio']) && is_string($_GET['data_inicio'])
@@ -21,12 +13,20 @@ $dataInicio = isset($_GET['data_inicio']) && is_string($_GET['data_inicio'])
 $dataFim = isset($_GET['data_fim']) && is_string($_GET['data_fim'])
     ? trim($_GET['data_fim']) : '';
 $erroFiltro = '';
+$erroConsulta = '';
+
+if ((isset($_GET['data_inicio']) && !is_string($_GET['data_inicio']))
+    || (isset($_GET['data_fim']) && !is_string($_GET['data_fim']))) {
+    $erroFiltro = 'Informe datas válidas para consultar o histórico.';
+}
 
 // Impede intervalos inválidos ou uma data inicial posterior à data final.
-if (($dataInicio !== '' && !dataHistoricoValida($dataInicio))
-    || ($dataFim !== '' && !dataHistoricoValida($dataFim))) {
+if ($erroFiltro === '' && (
+    ($dataInicio !== '' && !dataIsoValida($dataInicio))
+    || ($dataFim !== '' && !dataIsoValida($dataFim))
+)) {
     $erroFiltro = 'Informe datas válidas para consultar o histórico.';
-} elseif ($dataInicio !== '' && $dataFim !== '' && $dataInicio > $dataFim) {
+} elseif ($erroFiltro === '' && $dataInicio !== '' && $dataFim !== '' && $dataInicio > $dataFim) {
     $erroFiltro = 'A data inicial não pode ser posterior à data final.';
 }
 
@@ -48,6 +48,7 @@ $sqlEmprestimos = "SELECT
 
 $emprestimos = [];
 if ($erroFiltro === '') {
+    try {
     if ($dataInicio !== '' && $dataFim !== '') {
         $stmt = $conn->prepare($sqlEmprestimos . '
             WHERE emprestimos.data_emprestimo BETWEEN ? AND ?
@@ -82,6 +83,10 @@ if ($erroFiltro === '') {
             throw new RuntimeException('Não foi possível carregar o histórico: ' . $conn->error);
         }
         $emprestimos = $resultado->fetch_all(MYSQLI_ASSOC);
+    }
+    } catch (Throwable $erro) {
+        error_log('Falha ao carregar o histórico de empréstimos: ' . $erro->getMessage());
+        $erroConsulta = 'Não foi possível carregar o histórico. Tente novamente mais tarde.';
     }
 }
 
@@ -221,6 +226,11 @@ require 'includes/header.php';
         <?= htmlspecialchars($erroFiltro, ENT_QUOTES, 'UTF-8') ?>
     </div>
 <?php endif; ?>
+<?php if ($erroConsulta !== ''): ?>
+    <div class="alert alert-danger mt-3" role="alert">
+        <?= htmlspecialchars($erroConsulta, ENT_QUOTES, 'UTF-8') ?>
+    </div>
+<?php endif; ?>
 
 <section class="history-report surface-card" aria-labelledby="historicoTabelaTitulo">
     <div class="history-report-heading-screen">
@@ -235,7 +245,7 @@ require 'includes/header.php';
     </div>
     <?php if ($emprestimos === []): ?>
         <div class="dashboard-empty">
-            <?= $erroFiltro === '' ? 'Nenhum empréstimo encontrado para este período.' : 'Corrija o período para exibir os registros.' ?>
+            <?= $erroConsulta !== '' ? 'O histórico está temporariamente indisponível.' : ($erroFiltro === '' ? 'Nenhum empréstimo encontrado para este período.' : 'Corrija o período para exibir os registros.') ?>
         </div>
     <?php else: ?>
         <div class="table-responsive">

@@ -1,44 +1,52 @@
 ```php
 <?php
+require_once __DIR__ . '/../../config/seguranca.php';
+exigirAutenticacao();
 require_once __DIR__ . '/../../config/conexao.php';
 
 // Só permite acesso por envio de formulário POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: ../../emprestimos.php');
+    header('Location: ../../emprestimos.php?resultado=dados_invalidos');
+    exit;
+}
+
+if (!validarTokenCsrf($_POST['csrf_token'] ?? null)) {
+    header('Location: ../../emprestimos.php?resultado=csrf_invalido');
     exit;
 }
 
 // Receber os dados do formulário
-$alunoId = filter_input(INPUT_POST, 'aluno_id', FILTER_VALIDATE_INT);
-$livroId = filter_input(INPUT_POST, 'livro_id', FILTER_VALIDATE_INT);
-
-$dataEmprestimo = $_POST['data_emprestimo'] ?? '';
-$dataDevolucao = $_POST['data_devolucao'] ?? '';
+$alunoId = isset($_POST['aluno_id']) && is_string($_POST['aluno_id'])
+    ? filter_var($_POST['aluno_id'], FILTER_VALIDATE_INT)
+    : false;
+$livroId = isset($_POST['livro_id']) && is_string($_POST['livro_id'])
+    ? filter_var($_POST['livro_id'], FILTER_VALIDATE_INT)
+    : false;
+$dataEmprestimo = isset($_POST['data_emprestimo']) && is_string($_POST['data_emprestimo'])
+    ? $_POST['data_emprestimo'] : '';
+$dataDevolucao = isset($_POST['data_devolucao']) && is_string($_POST['data_devolucao'])
+    ? $_POST['data_devolucao'] : '';
 
 // Validar os IDs
-if (!$alunoId || $alunoId <= 0 || !$livroId || $livroId <= 0) {
+if (
+    !$alunoId || $alunoId <= 0 || $alunoId > 2147483647 ||
+    !$livroId || $livroId <= 0 || $livroId > 2147483647
+) {
     header('Location: ../../emprestimos.php?resultado=dados_invalidos');
     exit;
 }
 
 // Validar as datas
-$dataEmprestimoObj = DateTime::createFromFormat('!Y-m-d', $dataEmprestimo);
-$dataDevolucaoObj = DateTime::createFromFormat('!Y-m-d', $dataDevolucao);
-
-if (
-    !$dataEmprestimoObj ||
-    $dataEmprestimoObj->format('Y-m-d') !== $dataEmprestimo ||
-    !$dataDevolucaoObj ||
-    $dataDevolucaoObj->format('Y-m-d') !== $dataDevolucao ||
-    $dataDevolucao < $dataEmprestimo
-) {
+if (!datasEmprestimoValidas($dataEmprestimo, $dataDevolucao)) {
     header('Location: ../../emprestimos.php?resultado=datas_invalidas');
     exit;
 }
 
+$transacaoIniciada = false;
 try {
     // Iniciar uma transação
     $conn->begin_transaction();
+    $transacaoIniciada = true;
 
     // Verificar se o aluno existe
     $sqlAluno = "SELECT id FROM alunos WHERE id = ?";
@@ -111,7 +119,10 @@ try {
 
 } catch (Throwable $erro) {
     // Desfazer alterações caso algo dê errado
-    $conn->rollback();
+    if ($transacaoIniciada) {
+        $conn->rollback();
+    }
+    error_log('Falha ao registrar empréstimo: ' . $erro->getMessage());
 
     header('Location: ../../emprestimos.php?resultado=erro');
     exit;

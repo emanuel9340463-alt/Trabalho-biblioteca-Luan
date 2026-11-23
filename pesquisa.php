@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/config/seguranca.php';
+exigirAutenticacao();
 require_once 'config/conexao.php';
 
 function buscarAlunosEmprestimo($conn, $livroId)
@@ -35,11 +37,15 @@ function buscarAlunosEmprestimo($conn, $livroId)
     return $alunos;
 }
 
-$termo = isset($_GET['q']) && is_string($_GET['q']) ? trim($_GET['q']) : '';
+$tipoTermoValido = !isset($_GET['q']) || is_string($_GET['q']);
+$termo = $tipoTermoValido ? (isset($_GET['q']) ? trim($_GET['q']) : '') : '';
 $livros = [];
-$erro = '';
+$erro = $tipoTermoValido ? '' : 'O termo de pesquisa é inválido.';
 
-if ($termo === '') {
+try {
+if (!textoTamanhoValido($termo, 0, 100)) {
+    $erro = 'O termo de pesquisa deve ter no máximo 100 caracteres.';
+} elseif ($termo === '') {
     $sql = "SELECT
             livros.id,
             livros.titulo,
@@ -91,7 +97,9 @@ if ($termo === '') {
     }
 }
 
-if (!$stmt) {
+if ($erro !== '') {
+    // Mantém a mensagem de validação sem executar a consulta.
+} elseif (!$stmt) {
     $erro = 'Não foi possível preparar a pesquisa. Tente novamente mais tarde.';
 } elseif (!$stmt->execute()) {
     $erro = 'Não foi possível carregar os livros. Tente novamente mais tarde.';
@@ -100,6 +108,10 @@ if (!$stmt) {
     while ($livro = $resultado->fetch_assoc()) {
         $livros[] = $livro;
     }
+}
+} catch (Throwable $erroBanco) {
+    error_log('Falha ao pesquisar no acervo: ' . $erroBanco->getMessage());
+    $erro = 'Não foi possível carregar os livros. Tente novamente mais tarde.';
 }
 
 if (isset($stmt) && $stmt) {
