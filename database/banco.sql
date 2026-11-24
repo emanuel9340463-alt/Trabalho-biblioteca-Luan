@@ -80,3 +80,6 @@ SET @migracao_devolucao_real = IF(
 PREPARE stmt_migracao_devolucao_real FROM @migracao_devolucao_real;
 EXECUTE stmt_migracao_devolucao_real;
 DEALLOCATE PREPARE stmt_migracao_devolucao_real;
+
+INSERT INTO biblioteca_luan.usuarios (email, senha)
+VALUES ('admin@gmail.com', '$argon2id$v=19$m=65536,t=4,p=1$eEcvaWphMDFvQmcvbmtQTw$hTlxyCCC9s1ckjl/1nI+6TJ9U8582bhpnKQIETBrcdk');

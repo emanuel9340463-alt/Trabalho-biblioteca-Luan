@@ -68,7 +68,7 @@
         "A câmera não está disponível. Verifique se outro aplicativo está usando o dispositivo.",
       noCamera: "Nenhuma câmera foi encontrada neste dispositivo.",
       insecureContext:
-        "O leitor precisa de uma conexão segura (HTTPS ou localhost) para acessar a câmera.",
+        "A câmera exige HTTPS. No celular, o endereço IP local por HTTP não é seguro; configure HTTPS no servidor.",
       missingLibrary:
         "Não foi possível carregar o leitor de códigos. Recarregue a página e tente novamente.",
     };

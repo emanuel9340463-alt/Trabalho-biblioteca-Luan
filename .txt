@@ -12,6 +12,7 @@ Resolver:
 *Fazer com que os livros vao aparecendo quando se digita em pesquisa.php
 *Alinhar inputs de cadastrolivro.php e index.php
 *corrigir identação do código
+*filtro para pesquisa de alunos
 
 Adicionar:
 1º -Opção de promover os alunos de série - Feito

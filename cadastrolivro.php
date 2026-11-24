@@ -949,6 +949,6 @@ require 'includes/header.php';
     </div>
 </div>
 <script src="node_modules/@zxing/browser/umd/zxing-browser.min.js"></script>
-<script src="js/leitor-isbn.js?v=2"></script>
+<script src="js/leitor-isbn.js?v=3"></script>
 <script src="js/script.js?v=5"></script>
 <?php require 'includes/footer.php'; ?>

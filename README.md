@@ -29,19 +29,24 @@ Sistema web para administrar o acervo de uma biblioteca escolar. Permite cadastr
 - Apache;
 - MySQL/MariaDB;
 - PHP com os módulos MySQLi e cURL;
+- Node.js e npm, para instalar o leitor de códigos;
 - Navegador moderno.
 
-O leitor de câmera funciona em `localhost` ou em uma conexão HTTPS.
+O leitor de câmera funciona em `localhost` ou em uma conexão HTTPS. Em um celular,
+`localhost` aponta para o próprio celular; ao acessar o XAMPP pelo endereço IP da
+rede local, use HTTPS. Navegadores bloqueiam o acesso à câmera por HTTP nesse caso.
 
 ## Instalação no XAMPP
 
 1. Coloque a pasta do projeto em `C:\xampp\htdocs\`.
-2. Inicie **Apache** e **MySQL** pelo painel do XAMPP.
-3. Acesse `http://localhost/phpmyadmin`.
-4. Importe o arquivo `database/banco.sql`.
-5. Confirme que o banco `biblioteca_luan` foi criado.
-6. Crie o primeiro usuário administrativo conforme **Configuração de acesso**.
-7. Abra `http://localhost/Trabalho-biblioteca-Luan/login.php`.
+2. Na pasta do projeto, execute `npm ci` para instalar as dependências JavaScript,
+   incluindo o leitor de códigos usado pela câmera.
+3. Inicie **Apache** e **MySQL** pelo painel do XAMPP.
+4. Acesse `http://localhost/phpmyadmin`.
+5. Importe o arquivo `database/banco.sql`.
+6. Confirme que o banco `biblioteca_luan` foi criado.
+7. Crie o primeiro usuário administrativo conforme **Configuração de acesso**.
+8. Abra `http://localhost/Trabalho-biblioteca-Luan/login.php`.
 
 O banco já vem configurado no projeto com o usuário padrão do XAMPP:
 
@@ -71,7 +76,7 @@ Digite a senha no terminal e copie somente o hash gerado. No phpMyAdmin, execute
 
 ```sql
 INSERT INTO biblioteca_luan.usuarios (email, senha)
-VALUES ('admin@exemplo.local', 'COLE_AQUI_O_HASH_GERADO');
+VALUES ('admin@exemplo.local', '$argon2id$v=19$m=65536,t=4,p=1$d0FDdGNIQUYxZEloRm1pbA$C+AYYwvTWI9yLViCZwLA44U2OOpU/P/1kpKfrCzX4Mc');
 ```
 
 Não salve a senha em texto puro nem publique o hash. Para adicionar outros administradores, repita o procedimento com um e-mail distinto.
