@@ -11,7 +11,7 @@ Resolver:
 **Emprestimo quebrou - Resolvido
 *Fazer com que os livros vao aparecendo quando se digita em pesquisa.php
 *Alinhar inputs de cadastrolivro.php e index.php
-*corrigir identação do código
+*Forrigir identação do código
 *filtro para pesquisa de alunos
 
 Adicionar:
