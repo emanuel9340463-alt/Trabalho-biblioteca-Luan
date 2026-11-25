@@ -140,7 +140,14 @@ require 'includes/header.php';
 ?>
     <div class="container-fluid p-0">
 
-      <form class="search-form mb-4" action="pesquisa.php" method="get" role="search">
+      <form
+        class="search-form mb-4"
+        action="pesquisa.php"
+        method="get"
+        role="search"
+        data-live-search
+        data-search-results="#resultados-acervo"
+      >
         <label class="visually-hidden" for="termo-pesquisa">Título, autor, ISBN ou código da biblioteca</label>
         <input
           class="form-control"
@@ -149,9 +156,9 @@ require 'includes/header.php';
           type="search"
           placeholder="Título, autor, ISBN ou código da biblioteca"
           value="<?= escapar($termo) ?>">
-        <button class="btn btn-search" type="submit">Pesquisar</button>
       </form>
 
+      <div id="resultados-acervo" aria-live="polite">
       <?php if ($erro !== ''): ?>
         <div class="alert alert-danger" role="alert"><?= escapar($erro) ?></div>
       <?php elseif (count($livros) === 0): ?>
@@ -240,6 +247,7 @@ $disponivel = $disponiveis > 0;
           <?php endforeach; ?>
         </section>
       <?php endif; ?>
+      </div>
       <!-- Painel lateral com detalhes do livro -->
 <div
   class="offcanvas offcanvas-end"
@@ -474,4 +482,5 @@ status.textContent = disponivel
 });
 </script>
     </div>
+<script src="js/pesquisa-ao-vivo.js?v=3"></script>
 <?php require 'includes/footer.php'; ?>

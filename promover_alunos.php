@@ -82,13 +82,18 @@ require 'includes/header.php';
 <?php else: ?>
     <section class="surface-card mb-4" aria-labelledby="turmaOrigemTitulo">
         <h2 class="surface-title" id="turmaOrigemTitulo">1. Escolha a turma de origem</h2>
-        <p class="surface-subtitle">Os alunos cadastrados nessa turma serão exibidos para seleção.</p>
+        <p class="surface-subtitle">Selecione uma turma para carregar os alunos automaticamente.</p>
         <?php if ($turmas === []): ?>
             <div class="alert alert-warning mb-0" role="status">
                 Não há turmas cadastradas para promover.
             </div>
         <?php else: ?>
-            <form method="get" action="promover_alunos.php" class="row g-3 align-items-end">
+            <form
+                method="get"
+                action="promover_alunos.php"
+                class="row g-3 align-items-end"
+                data-auto-submit
+            >
                 <div class="col-12 col-md-7 col-lg-5">
                     <label class="form-label" for="turma-origem">Turma de origem</label>
                     <select class="form-select" id="turma-origem" name="turma_origem" required>
@@ -101,9 +106,11 @@ require 'includes/header.php';
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div class="col-12 col-md-auto">
-                    <button class="btn btn-primary" type="submit">Carregar alunos</button>
-                </div>
+                <noscript>
+                    <div class="col-12 col-md-auto">
+                        <button class="btn btn-primary" type="submit">Carregar alunos</button>
+                    </div>
+                </noscript>
             </form>
         <?php endif; ?>
     </section>
@@ -194,5 +201,5 @@ require 'includes/header.php';
         <?php endif; ?>
     <?php endif; ?>
 <?php endif; ?>
-<script src="js/promover_alunos.js?v=1"></script>
+<script src="js/promover_alunos.js?v=2"></script>
 <?php require 'includes/footer.php'; ?>

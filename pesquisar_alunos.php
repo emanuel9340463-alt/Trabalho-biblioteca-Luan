@@ -48,6 +48,11 @@ try {
 
 $conn->close();
 
+$alunosPorTurma = [];
+foreach ($alunos as $aluno) {
+    $alunosPorTurma[$aluno['turma']][] = $aluno;
+}
+
 function escaparConsultaAlunos($valor)
 {
     return htmlspecialchars((string) $valor, ENT_QUOTES, 'UTF-8');
@@ -56,12 +61,19 @@ function escaparConsultaAlunos($valor)
 $pageTitle = 'Pesquisar alunos';
 $pageDescription = 'Consulte os alunos cadastrados por nome ou turma.';
 $activePage = 'pesquisar_alunos';
+$pageStyles = ['css/pesquisa.css'];
 require 'includes/header.php';
 ?>
 <section class="surface-card mb-4" aria-labelledby="filtroAlunosTitulo">
     <h2 class="surface-title" id="filtroAlunosTitulo">Localizar alunos</h2>
     <p class="surface-subtitle">Pesquise pelo nome do aluno ou pela turma.</p>
-    <form method="get" action="pesquisar_alunos.php" class="row g-3 align-items-end">
+    <form
+        method="get"
+        action="pesquisar_alunos.php"
+        class="row g-3 align-items-end"
+        data-live-search
+        data-search-results="#resultados-alunos"
+    >
         <div class="col-12 col-md-8">
             <label for="busca-alunos" class="form-label">Nome ou turma</label>
             <input
@@ -82,6 +94,7 @@ require 'includes/header.php';
     </form>
 </section>
 
+<div id="resultados-alunos" aria-live="polite">
 <?php if ($erro !== ''): ?>
     <div class="alert alert-danger" role="alert"><?= escaparConsultaAlunos($erro) ?></div>
 <?php elseif ($alunos === []): ?>
@@ -99,26 +112,76 @@ require 'includes/header.php';
                 <?= count($alunos) ?> <?= count($alunos) === 1 ? 'aluno encontrado' : 'alunos encontrados' ?>
             </span>
         </div>
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead>
-                    <tr>
-                        <th scope="col">Nome</th>
-                        <th scope="col">Data de nascimento</th>
-                        <th scope="col">Turma</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($alunos as $aluno): ?>
+        <div class="btn-group mb-3" role="group" aria-label="Modo de exibição dos alunos">
+            <input
+                type="radio"
+                class="btn-check"
+                name="visualizacao-alunos"
+                id="visualizacao-por-turma"
+                value="grupos"
+                data-student-view-control
+                checked
+            >
+            <label class="btn btn-outline-primary" for="visualizacao-por-turma">Por turma</label>
+            <input
+                type="radio"
+                class="btn-check"
+                name="visualizacao-alunos"
+                id="visualizacao-individual"
+                value="individual"
+                data-student-view-control
+            >
+            <label class="btn btn-outline-primary" for="visualizacao-individual">Individualmente</label>
+        </div>
+        <div data-student-view="grupos">
+            <div class="d-grid gap-2">
+                <?php foreach ($alunosPorTurma as $turma => $alunosDaTurma): ?>
+                    <details class="border rounded">
+                        <summary class="list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded">
+                            <span>Turma <?= escaparConsultaAlunos($turma) ?></span>
+                            <span class="badge text-bg-secondary">
+                                <?= count($alunosDaTurma) ?>
+                                <?= count($alunosDaTurma) === 1 ? 'aluno' : 'alunos' ?>
+                            </span>
+                        </summary>
+                        <ul class="list-group list-group-flush">
+                            <?php foreach ($alunosDaTurma as $aluno): ?>
+                                <li class="list-group-item d-flex flex-wrap justify-content-between gap-2">
+                                    <span><?= escaparConsultaAlunos($aluno['nome']) ?></span>
+                                    <span class="text-body-secondary">
+                                        Nascimento: <?= date('d/m/Y', strtotime($aluno['data_nascimento'])) ?>
+                                    </span>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </details>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <div data-student-view="individual" hidden>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
                         <tr>
-                            <td><?= escaparConsultaAlunos($aluno['nome']) ?></td>
-                            <td><?= date('d/m/Y', strtotime($aluno['data_nascimento'])) ?></td>
-                            <td><?= escaparConsultaAlunos($aluno['turma']) ?></td>
+                            <th scope="col">Nome</th>
+                            <th scope="col">Data de nascimento</th>
+                            <th scope="col">Turma</th>
                         </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($alunos as $aluno): ?>
+                            <tr>
+                                <td><?= escaparConsultaAlunos($aluno['nome']) ?></td>
+                                <td><?= date('d/m/Y', strtotime($aluno['data_nascimento'])) ?></td>
+                                <td><?= escaparConsultaAlunos($aluno['turma']) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </section>
 <?php endif; ?>
+</div>
+<script src="js/pesquisa-ao-vivo.js?v=3"></script>
 <?php require 'includes/footer.php'; ?>

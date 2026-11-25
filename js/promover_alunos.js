@@ -1,4 +1,11 @@
 (() => {
+  const classForm = document.querySelector("[data-auto-submit]");
+  const classSelect = classForm?.querySelector('select[name="turma_origem"]');
+
+  classSelect?.addEventListener("change", () => {
+    classForm.requestSubmit();
+  });
+
   // O formulário só será tratado se estiver presente nesta página.
   const form = document.querySelector("[data-promotion-form]");
 
