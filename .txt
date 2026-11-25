@@ -9,10 +9,15 @@ Resolver:
 * As vezes os títulos dos livros aparecem em outra linguas (em cadastro) - Resolvido
 *Exibir a mesma mensagem de "capa não encontrada" no offcanvas - Resolvido
 **Emprestimo quebrou - Resolvido
-*Fazer com que os livros vao aparecendo quando se digita em pesquisa.php
+*Fazer com que os livros vao aparecendo quando se digita em pesquisa.php **
 *Alinhar inputs de cadastrolivro.php e index.php
-*Forrigir identação do código
-*filtro para pesquisa de alunos
+*Corrigir identação do código
+*filtro para pesquisa de alunos ***
+*Corrigir tradução de livros **
+*Tirar foto do celular
+*Alinhar o botão de sair da camera em cadastrolivro.php
+*Fazer alunos aparecem sem precisar clicar no botão em promover_alunos.php
+*Testar sistema com muitos livros e alunos 
 
 Adicionar:
 1º -Opção de promover os alunos de série - Feito
