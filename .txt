@@ -34,32 +34,3 @@ git switch -c feature/leitor-codigo-barras
 
 Rodar programa no Ngork (remote)
 ngrok http 80
-
-$argon2id$v=19$m=65536,t=4,p=1$NUJqQzRUdXRZdWRMdUFhNg$O8/ZTeOLY8oJTbEtdRpamw2anI15t00iCCw8t/hryo0
-
-Quero hospedar um sistema web e preciso que você me recomende a melhor arquitetura e as melhores opções de hospedagem (priorizando opções gratuitas ou de baixo custo) com base nas especificações técnicas do meu projeto.
-Abaixo estão os detalhes do sistema. Analise tudo e me entregue um plano de hospedagem completo, explicando onde colocar cada parte, como conectá-las e quais são as limitações:
-1. Stack Tecnológica (Linguagens e Frameworks)
-• Front-end: [Ex: HTML, CSS, JS puro / React / Vue / Bootstrap]
-• Back-end principal: [Ex: PHP 8.2 puro / Laravel / CodeIgniter]
-• Back-end secundário / Serviços: [Ex: Node.js com Express, Socket.io, ou apenas usado para compilar assets com Vite/Webpack?]
-• Outras tecnologias/serviços: [Ex: Python, Redis, filas/workers, cron jobs, envio de e-mails SMTP, FFmpeg]
-2. Banco de Dados e Armazenamento
-• Banco de dados: [Ex: MySQL 8.0 / MariaDB]
-• Volume estimado de dados: [Ex: Pequeno, menos de 500 MB / Médio, alguns GB]
-• Acesso ao banco: [Ex: Apenas o PHP acessa o banco, ou o PHP e o Node.js precisam acessar o mesmo banco simultaneamente?]
-• Upload de arquivos: [Ex: O sistema salva imagens/PDFs enviados pelos usuários? Onde? Localmente no servidor ou em nuvem?]
-3. Tráfego e Comportamento do Sistema
-• Objetivo do projeto: [Ex: TCC / Portfólio / MVP para testes / Sistema em produção com clientes reais]
-• Expectativa de usuários: [Ex: Apenas eu testando / 50 usuários por dia / 1.000 acessos simultâneos]
-• Disponibilidade: [Ex: Pode hibernar se ficar sem acesso por 15 minutos, ou precisa ficar 100% online 24/7 sem atrasos?]
-• Processos em segundo plano: [Ex: Precisa de WebSockets em tempo real ou tarefas agendadas rodando de hora em hora?]
-4. Restrições e Conhecimento Técnico
-• Orçamento: [Ex: R$ 0,00 estritamente gratuito / Posso gastar até R$ X por mês]
-• Cartão de crédito: [Ex: Não tenho cartão para cadastrar em nuvens como AWS/Oracle/Google, ou tenho cartão apenas para verificação sem cobrança]
-• Domínio próprio: [Ex: Já tenho um domínio .com.br / Vou usar subdomínio gratuito da hospedagem]
-• Nível técnico: [Ex: Prefiro painéis visuais tipo cPanel/FTP, ou sei configurar um servidor Linux VPS via terminal SSH e Docker]
-Com base nessas respostas, me forneça:
-1. A melhor opção de hospedagem (única ou dividida por serviços).
-2. O passo a passo resumido de como fazer o deploy.
-3. Quais gargalos ou limites do plano gratuito podem afetar meu sistema primeiro.
