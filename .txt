@@ -20,6 +20,7 @@ Resolver:
 *Testar sistema com muitos livros e alunos 
 *Fazer o cadastro da bibliotecaria para usar o sistema
 *Botão QR em cadastrolivro.php **
+*Fazer com que o login aponte apenas pra sua biblioteca
 
 Adicionar:
 1º -Opção de promover os alunos de série - Feito
