@@ -54,8 +54,16 @@
   border-radius: 50%;
   background: var(--white);
   color: var(--forest);
-  font-size: 1.6rem;
-  line-height: 1;
+}
+
+.isbn-scanner-close svg,
+.access-qr-close svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 1.8;
 }
 
 .isbn-scanner-close:hover {
@@ -136,6 +144,103 @@
   box-shadow: none;
 }
 
+.access-qr-dialog {
+  width: min(92vw, 31rem);
+  max-width: none;
+  max-height: 92vh;
+  padding: 0;
+  overflow: auto;
+  border: 1px solid var(--line-warm);
+  border-radius: 16px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 24px 70px rgb(16 47 40 / 30%);
+}
+
+.access-qr-dialog::backdrop {
+  background: rgb(16 32 27 / 68%);
+  backdrop-filter: blur(3px);
+}
+
+.access-qr-content {
+  padding: clamp(1rem, 4vw, 1.6rem);
+}
+
+.access-qr-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.access-qr-header h2 {
+  margin: 0;
+  color: var(--forest);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.45rem;
+  font-weight: 700;
+}
+
+.access-qr-close {
+  display: grid;
+  width: 2.4rem;
+  height: 2.4rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--line-warm);
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--forest);
+}
+
+.access-qr-close:hover {
+  background: var(--forest-soft);
+}
+
+.access-qr-instructions {
+  margin: 1rem 0;
+  color: var(--muted);
+}
+
+.access-qr-code {
+  display: grid;
+  min-height: 17rem;
+  place-items: center;
+  padding: 1rem;
+  border: 1px solid var(--line-warm);
+  border-radius: 12px;
+  background: var(--white);
+}
+
+.access-qr-code svg {
+  display: block;
+  width: min(100%, 16rem);
+  height: auto;
+  shape-rendering: crispEdges;
+}
+
+.access-qr-link-label {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+.access-qr-link {
+  overflow-wrap: anywhere;
+}
+
+.access-qr-footnote {
+  margin-top: 0.75rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.access-qr-dialog button:focus-visible {
+  outline: 3px solid rgb(214 168 95 / 72%);
+  outline-offset: 3px;
+  box-shadow: none;
+}
+
 @media (max-width: 479.98px) {
   .isbn-field-heading {
     align-items: flex-start;
@@ -146,6 +251,10 @@
   }
 
   .isbn-scanner-dialog {
+    border-radius: 12px;
+  }
+
+  .access-qr-dialog {
     border-radius: 12px;
   }
 }

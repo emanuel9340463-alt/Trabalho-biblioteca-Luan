@@ -40,9 +40,44 @@ DEALLOCATE PREPARE stmt_migracao_quantidade;
 
 CREATE TABLE IF NOT EXISTS usuarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(150) NOT NULL DEFAULT '',
+    telefone VARCHAR(30) NOT NULL DEFAULT '',
     email VARCHAR(255) NOT NULL UNIQUE,
     senha VARCHAR(255) NOT NULL
 );
+
+-- Compatibilização: adiciona os dados de contato sem remover usuários existentes.
+SET @coluna_nome_usuario_existe = (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'usuarios'
+      AND column_name = 'nome'
+);
+SET @migracao_nome_usuario = IF(
+    @coluna_nome_usuario_existe = 0,
+    'ALTER TABLE usuarios ADD nome VARCHAR(150) NOT NULL DEFAULT ''''',
+    'SELECT 1'
+);
+PREPARE stmt_migracao_nome_usuario FROM @migracao_nome_usuario;
+EXECUTE stmt_migracao_nome_usuario;
+DEALLOCATE PREPARE stmt_migracao_nome_usuario;
+
+SET @coluna_telefone_usuario_existe = (
+    SELECT COUNT(*)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'usuarios'
+      AND column_name = 'telefone'
+);
+SET @migracao_telefone_usuario = IF(
+    @coluna_telefone_usuario_existe = 0,
+    'ALTER TABLE usuarios ADD telefone VARCHAR(30) NOT NULL DEFAULT ''''',
+    'SELECT 1'
+);
+PREPARE stmt_migracao_telefone_usuario FROM @migracao_telefone_usuario;
+EXECUTE stmt_migracao_telefone_usuario;
+DEALLOCATE PREPARE stmt_migracao_telefone_usuario;
 
 -- Guarda somente identificadores hash para limitar tentativas de login.
 CREATE TABLE IF NOT EXISTS login_tentativas (

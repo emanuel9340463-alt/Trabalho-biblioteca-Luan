@@ -134,21 +134,28 @@ require 'includes/header.php';
             <label class="btn btn-outline-primary" for="visualizacao-individual">Individualmente</label>
         </div>
         <div data-student-view="grupos">
-            <div class="d-grid gap-2">
+            <div class="student-class-groups">
                 <?php foreach ($alunosPorTurma as $turma => $alunosDaTurma): ?>
-                    <details class="border rounded">
-                        <summary class="list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded">
-                            <span>Turma <?= escaparConsultaAlunos($turma) ?></span>
-                            <span class="badge text-bg-secondary">
+                    <details class="student-class-group">
+                        <summary class="student-class-summary">
+                            <span class="student-class-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 5.5v16M8 7h8M8 11h8"/></svg>
+                            </span>
+                            <span class="student-class-heading">
+                                <span class="student-class-eyebrow">GRUPO DE ALUNOS</span>
+                                <strong>Turma <?= escaparConsultaAlunos($turma) ?></strong>
+                            </span>
+                            <span class="student-class-count">
                                 <?= count($alunosDaTurma) ?>
                                 <?= count($alunosDaTurma) === 1 ? 'aluno' : 'alunos' ?>
                             </span>
+                            <span class="student-class-chevron" aria-hidden="true"></span>
                         </summary>
-                        <ul class="list-group list-group-flush">
+                        <ul class="student-class-students">
                             <?php foreach ($alunosDaTurma as $aluno): ?>
-                                <li class="list-group-item d-flex flex-wrap justify-content-between gap-2">
-                                    <span><?= escaparConsultaAlunos($aluno['nome']) ?></span>
-                                    <span class="text-body-secondary">
+                                <li class="student-class-student">
+                                    <span class="student-class-student-name"><?= escaparConsultaAlunos($aluno['nome']) ?></span>
+                                    <span class="student-class-student-meta">
                                         Nascimento: <?= date('d/m/Y', strtotime($aluno['data_nascimento'])) ?>
                                     </span>
                                 </li>

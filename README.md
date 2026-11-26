@@ -7,6 +7,8 @@ Sistema web para administrar o acervo de uma biblioteca escolar. Permite cadastr
 - Painel com totais de títulos, exemplares, alunos e empréstimos;
 - Cadastro de livros com pesquisa automática de dados pelo ISBN;
 - Leitura opcional de ISBN pelo leitor de câmera;
+- Acesso à tela de login em outro dispositivo por QR Code;
+- Opção para visualizar a senha nos formulários de acesso e cadastro;
 - Cadastro e pesquisa de alunos;
 - Promoção de alunos para outra turma;
 - Pesquisa de livros por título, autor, ISBN ou código;
@@ -35,6 +37,9 @@ Sistema web para administrar o acervo de uma biblioteca escolar. Permite cadastr
 O leitor de câmera funciona em `localhost` ou em uma conexão HTTPS. Em um celular,
 `localhost` aponta para o próprio celular; ao acessar o XAMPP pelo endereço IP da
 rede local, use HTTPS. Navegadores bloqueiam o acesso à câmera por HTTP nesse caso.
+O QR Code de acesso usa o endereço atual do sistema. Para abri-lo em outro dispositivo,
+use um domínio hospedado ou um endereço de rede acessível pelo celular; `localhost`
+funciona somente no computador que está executando o navegador.
 
 ## Instalação no XAMPP
 
@@ -45,8 +50,8 @@ rede local, use HTTPS. Navegadores bloqueiam o acesso à câmera por HTTP nesse 
 4. Acesse `http://localhost/phpmyadmin`.
 5. Importe o arquivo `database/banco.sql`.
 6. Confirme que o banco `biblioteca_luan` foi criado.
-7. Crie o primeiro usuário administrativo conforme **Configuração de acesso**.
-8. Abra `http://localhost/Trabalho-biblioteca-Luan/login.php`.
+7. Abra `http://localhost/Trabalho-biblioteca-Luan/login.php` e selecione
+   **Cadastre-se** para criar a conta da bibliotecária.
 
 O banco já vem configurado no projeto com o usuário padrão do XAMPP:
 
@@ -59,9 +64,13 @@ $banco = "biblioteca_luan";
 
 Se o MySQL tiver outra senha ou usuário, altere os valores em `config/conexao.php`.
 
-## Configuração de acesso
+## Cadastro e acesso
 
-Todas as páginas de gestão e APIs internas exigem uma sessão autenticada. Não existe cadastro público de administradores. Para criar o primeiro usuário, gere um hash localmente em um PowerShell (a senha é lida sem exibi-la):
+Todas as páginas de gestão e APIs internas exigem uma sessão autenticada. Na tela de login, uma bibliotecária pode selecionar **Cadastre-se** e informar nome completo, telefone, e-mail e senha. A senha precisa ter pelo menos 12 caracteres e é armazenada somente como hash.
+
+**Importante:** o sistema ainda não possui perfis ou aprovação de contas. Qualquer pessoa que consiga acessar a tela pública de cadastro recebe acesso administrativo completo. Em uma hospedagem pública, restrinja o cadastro a pessoas autorizadas antes de divulgar o endereço do sistema.
+
+Para criar uma conta administrativa manualmente, por exemplo durante uma recuperação, gere um hash localmente em um PowerShell (a senha é lida sem exibi-la):
 
 ```powershell
 $senhaSegura = Read-Host "Senha do administrador" -AsSecureString
@@ -75,8 +84,8 @@ $hash
 Digite a senha no terminal e copie somente o hash gerado. No phpMyAdmin, execute a consulta abaixo substituindo o e-mail e o hash:
 
 ```sql
-INSERT INTO biblioteca_luan.usuarios (email, senha)
-VALUES ('admin@exemplo.local', '$argon2id$v=19$m=65536,t=4,p=1$d0FDdGNIQUYxZEloRm1pbA$C+AYYwvTWI9yLViCZwLA44U2OOpU/P/1kpKfrCzX4Mc');
+INSERT INTO biblioteca_luan.usuarios (nome, telefone, email, senha)
+VALUES ('Nome da bibliotecária', '(31) 99999-9999', 'admin@exemplo.local', '$argon2id$v=19$m=65536,t=4,p=1$d0FDdGNIQUYxZEloRm1pbA$C+AYYwvTWI9yLViCZwLA44U2OOpU/P/1kpKfrCzX4Mc');
 ```
 
 Não salve a senha em texto puro nem publique o hash. Para adicionar outros administradores, repita o procedimento com um e-mail distinto.
@@ -95,7 +104,7 @@ O verificador é somente CLI, consulta o banco configurado em `config/conexao.ph
 
 ### Atualização de instalações existentes
 
-O login aceita somente senhas com hash. Se a tabela `usuarios` ainda tiver senhas em texto puro, faça backup do banco, atualize o projeto e execute o SQL atualizado (ele cria a tabela de limitação de tentativas sem apagar as demais tabelas ou registros). Antes de liberar o acesso à aplicação atualizada, execute no PowerShell:
+Faça backup do banco e execute o `database/banco.sql` atualizado: ele adiciona os campos de nome e telefone sem apagar usuários existentes, além de criar a tabela de limitação de tentativas. O login aceita somente senhas com hash. Se a tabela `usuarios` ainda tiver senhas em texto puro, migre-as antes de liberar o acesso à aplicação:
 
 ```powershell
 & C:\xampp\php\php.exe C:\xampp\htdocs\Trabalho-biblioteca-Luan\database\migrar_senhas_legadas.php
@@ -120,6 +129,7 @@ Não mantenha uma cópia da tabela ou do arquivo exportado em local público. Se
 │   └── api/                Consultas em formato JSON
 ├── index.php               Painel principal
 ├── login.php               Entrada da área administrativa
+├── cadastro.php            Cadastro de bibliotecárias
 ├── cadastroaluno.php       Cadastro de alunos
 ├── cadastrolivro.php       Cadastro de livros
 ├── emprestimos.php         Empréstimos e devoluções

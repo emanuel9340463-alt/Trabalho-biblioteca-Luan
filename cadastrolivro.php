@@ -815,9 +815,18 @@ require 'includes/header.php';
 <div class="row justify-content-center">
     <div class="col-12 col-xl-9">
         <section class="surface-card">
-            <div class="mb-4">
-                <h2 class="surface-title">Dados do livro</h2>
-                <p class="surface-subtitle">Informe ou escaneie o ISBN para buscar e preencher os dados bibliográficos.</p>
+            <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
+                <div>
+                    <h2 class="surface-title">Dados do livro</h2>
+                    <p class="surface-subtitle">Informe ou escaneie o ISBN para buscar e preencher os dados bibliográficos.</p>
+                </div>
+                <button
+                    class="btn btn-outline-primary"
+                    type="button"
+                    data-open-access-qr
+                    aria-haspopup="dialog"
+                    aria-controls="accessQrDialog"
+                >Acessar pelo celular (QR Code)</button>
             </div>
 
             <form
@@ -900,6 +909,38 @@ require 'includes/header.php';
             </form>
 
             <dialog
+                class="access-qr-dialog"
+                id="accessQrDialog"
+                aria-labelledby="accessQrTitle"
+            >
+                <div class="access-qr-content">
+                    <header class="access-qr-header">
+                        <div>
+                            <p class="eyebrow mb-1">ACESSO PELO CELULAR</p>
+                            <h2 id="accessQrTitle">Acesse a biblioteca</h2>
+                        </div>
+                        <button
+                            class="access-qr-close"
+                            type="button"
+                            data-close-access-qr
+                            aria-label="Fechar código QR"
+                        >
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+                        </button>
+                    </header>
+                    <p class="access-qr-instructions">Escaneie este código com a câmera do celular para abrir a tela de login.</p>
+                    <div class="access-qr-code" id="accessQrCode" role="img" aria-label="Código QR para abrir a tela de login"></div>
+                    <p class="alert alert-warning mt-3 mb-2" id="accessQrLocalhostWarning" role="status" hidden>
+                        Este endereço usa localhost e só funciona neste computador. Para acessar pelo celular, abra o sistema pelo endereço IP da rede local ou pelo domínio hospedado. Em hospedagem, use HTTPS.
+                    </p>
+                    <p class="alert alert-danger mt-3 mb-2" id="accessQrError" role="alert" hidden></p>
+                    <p class="access-qr-link-label mb-1">Endereço de acesso</p>
+                    <a class="access-qr-link" id="accessQrLink"></a>
+                    <p class="access-qr-footnote mb-0">O celular precisa conseguir acessar este mesmo endereço.</p>
+                </div>
+            </dialog>
+
+            <dialog
                 class="isbn-scanner-dialog"
                 id="isbnScannerDialog"
                 aria-labelledby="isbnScannerTitle"
@@ -915,7 +956,9 @@ require 'includes/header.php';
                             type="button"
                             data-close-isbn-scanner
                             aria-label="Fechar leitor"
-                        >×</button>
+                        >
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+                        </button>
                     </header>
 
                     <p class="isbn-scanner-instructions">
@@ -949,6 +992,7 @@ require 'includes/header.php';
     </div>
 </div>
 <script src="node_modules/@zxing/browser/umd/zxing-browser.min.js"></script>
+<script src="js/qr-acesso.js"></script>
 <script src="js/leitor-isbn.js?v=3"></script>
 <script src="js/script.js?v=5"></script>
 <?php require 'includes/footer.php'; ?>

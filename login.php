@@ -8,6 +8,7 @@ if (isset($_SESSION['usuario_id'])) {
 }
 
 $erro = isset($_GET['erro']) && is_string($_GET['erro']) ? $_GET['erro'] : '';
+$cadastro = isset($_GET['cadastro']) && is_string($_GET['cadastro']) ? $_GET['cadastro'] : '';
 ?>
 <!doctype html>
 <html lang="pt-br">
@@ -27,6 +28,9 @@ $erro = isset($_GET['erro']) && is_string($_GET['erro']) ? $_GET['erro'] : '';
             <h1 class="surface-title">Entrar</h1>
             <p class="surface-subtitle">Acesse sua conta para continuar.</p>
         </div>
+        <?php if ($cadastro === 'sucesso'): ?>
+            <div class="alert alert-success" role="status">Cadastro realizado. Entre com seu e-mail e senha.</div>
+        <?php endif; ?>
         <?php if ($erro !== ''): ?>
             <div class="alert alert-danger" role="alert">
                 <?php if ($erro === 'sessao'): ?>
@@ -46,11 +50,19 @@ $erro = isset($_GET['erro']) && is_string($_GET['erro']) ? $_GET['erro'] : '';
             </div>
             <div class="mb-4">
                 <label class="form-label" for="senha">Senha</label>
-                <input class="form-control" type="password" name="senha" id="senha" autocomplete="current-password" required>
+                <div class="input-group">
+                    <input class="form-control" type="password" name="senha" id="senha" autocomplete="current-password" required>
+                    <button class="btn btn-outline-secondary" type="button" data-password-toggle aria-controls="senha" aria-label="Mostrar senha" aria-pressed="false">Mostrar</button>
+                </div>
             </div>
             <button class="btn btn-primary w-100" type="submit">Entrar</button>
         </form>
+        <p class="text-center mt-4 mb-0">
+            É bibliotecária e ainda não tem conta?
+            <a href="cadastro.php">Cadastre-se</a>
+        </p>
     </section>
 </main>
+<script src="js/visibilidade-senha.js"></script>
 </body>
 </html>
