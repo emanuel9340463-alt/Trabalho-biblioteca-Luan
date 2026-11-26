@@ -18,6 +18,7 @@ Resolver:
 *Alinhar o botão de sair da camera em cadastrolivro.php
 *Fazer alunos aparecem sem precisar clicar no botão em promover_alunos.php
 *Testar sistema com muitos livros e alunos 
+*Fazer o cadastro da bibliotecaria para usar o sistema
 
 Adicionar:
 1º -Opção de promover os alunos de série - Feito
