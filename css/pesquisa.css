@@ -32,12 +32,30 @@ body {
   max-width: 720px;
 }
 
+.student-search-actions .btn {
+  min-height: 48px;
+}
+
+.student-view-toggle {
+  display: flex;
+  width: min(100%, 24rem);
+}
+
+.student-view-toggle > .btn {
+  flex: 1 1 0;
+}
+
+.student-search-actions .btn:hover:not(:disabled),
+.student-view-toggle > .btn:hover:not(:disabled) {
+  transform: none;
+}
+
 .search-form .form-control {
   min-height: 3.35rem;
   border-color: #d8d5c9;
   border-radius: 11px;
   background-color: var(--paper);
-  box-shadow: 0 2px 6px rgb(52 64 84 / 4%);
+  box-shadow: 0 2px 6px rgb(23 63 53 / 4%);
 }
 
 .search-form .form-control:focus {
@@ -96,7 +114,7 @@ body {
   border: 1px solid var(--line-warm);
   border-radius: 14px;
   background: var(--paper);
-  box-shadow: 0 3px 12px rgb(52 64 84 / 4%);
+  box-shadow: 0 3px 12px rgb(23 63 53 / 4%);
   transition:
     border-color 160ms ease,
     box-shadow 160ms ease;
@@ -280,7 +298,7 @@ body {
   align-items: center;
   gap: 0.6rem;
   justify-content: center;
-  color: #77827c;
+  color: var(--muted);
   font-size: 0.85rem;
 }
 
@@ -407,7 +425,7 @@ body {
 
 .app-content #painelLivro #capaPainel {
   border: 1px solid var(--line-warm);
-  box-shadow: 0 5px 14px rgb(52 64 84 / 10%);
+  box-shadow: 0 5px 14px rgb(23 63 53 / 10%);
 }
 
 .app-content #painelLivro #tituloLivroPainel {
@@ -425,7 +443,7 @@ body {
 }
 
 .app-content #painelLivro .offcanvas-body p strong {
-  color: #35483e;
+  color: var(--ink);
 }
 
 .app-content #painelLivro hr {
@@ -451,7 +469,7 @@ body {
   border: 1px dashed #c9cdbf;
   border-radius: 14px;
   background: var(--paper);
-  box-shadow: 0 8px 24px rgb(52 64 84 / 5%);
+  box-shadow: 0 8px 24px rgb(23 63 53 / 5%);
   text-align: center;
 }
 

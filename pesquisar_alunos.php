@@ -85,7 +85,7 @@ require 'includes/header.php';
                 placeholder="Ex.: Maria da Silva ou 2A"
             >
         </div>
-        <div class="col-12 col-md-auto d-flex flex-wrap gap-2">
+        <div class="student-search-actions col-12 col-md-auto d-flex flex-wrap gap-2">
             <button type="submit" class="btn btn-primary">Pesquisar</button>
             <?php if ($termo !== ''): ?>
                 <a href="pesquisar_alunos.php" class="btn btn-outline-primary">Limpar</a>
@@ -112,7 +112,7 @@ require 'includes/header.php';
                 <?= count($alunos) ?> <?= count($alunos) === 1 ? 'aluno encontrado' : 'alunos encontrados' ?>
             </span>
         </div>
-        <div class="btn-group mb-3" role="group" aria-label="Modo de exibição dos alunos">
+        <div class="btn-group student-view-toggle mb-3" role="group" aria-label="Modo de exibição dos alunos">
             <input
                 type="radio"
                 class="btn-check"

@@ -3,10 +3,14 @@ document.querySelectorAll("[data-password-toggle]").forEach((button) => {
 
   if (!input) return;
 
+  const iconeMostrar = button.querySelector('[data-password-icon="show"]');
+  const iconeOcultar = button.querySelector('[data-password-icon="hide"]');
+
   button.addEventListener("click", () => {
     const mostrarSenha = input.type === "password";
     input.type = mostrarSenha ? "text" : "password";
-    button.textContent = mostrarSenha ? "Ocultar" : "Mostrar";
+    iconeMostrar.hidden = mostrarSenha;
+    iconeOcultar.hidden = !mostrarSenha;
     button.setAttribute(
       "aria-label",
       mostrarSenha ? "Ocultar senha" : "Mostrar senha",

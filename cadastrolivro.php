@@ -860,7 +860,7 @@ require 'includes/header.php';
                         </div>
                     </div>
                     <div class="col-12 col-lg-5 mb-3">
-                        <label class="form-label" for="codigo_bibli">Código da biblioteca</label>
+                        <label class="form-label isbn-field-label" for="codigo_bibli">Código da biblioteca</label>
                         <input type="text" name="codigo_bibli" class="form-control" id="codigo_bibli" placeholder="Ex.: BIB-001" value="<?= escapar($codigo_bibli) ?>" maxlength="20" required>
                         <div class="form-text">Código interno único para localizar o exemplar.</div>
                     </div>
